@@ -37,22 +37,22 @@ fn main() {
 pub fn setup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    commands
-        .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Ferris::sprite(),
-            animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
-            transform: Transform {
-                scale: Vec3::splat(4.),
-                translation: Vec3::new(0., -200., 0.),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(WalkToTarget)
-        .insert(VelocityWalker {
-            velocity: Vec3::ZERO,
-        })
-        .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
+    // commands
+    //     .spawn_bundle(AsepriteBundle {
+    //         aseprite: sprites::Ferris::sprite(),
+    //         animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+    //         transform: Transform {
+    //             scale: Vec3::splat(4.),
+    //             translation: Vec3::new(0., -200., 0.),
+    //             ..Default::default()
+    //         },
+    //         ..Default::default()
+    //     })
+    //     .insert(WalkToTarget)
+    //     .insert(VelocityWalker {
+    //         velocity: Vec3::ZERO,
+    //     })
+    //     .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
 
     commands
         .spawn_bundle(AsepriteBundle {
