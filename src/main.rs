@@ -15,12 +15,13 @@ use game1::{
     walk::{VelocityWalker, WalkPlugin},
     TargetFlag,
 };
+use rand::{thread_rng, Rng};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(AsepritePlugin)
-        .add_plugin(WorldInspectorPlugin::new())
+        // .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(WalkPlugin)
         .add_plugin(BrainyPlugin)
@@ -53,7 +54,16 @@ pub fn setup(mut commands: Commands) {
     //         velocity: Vec3::ZERO,
     //     })
     //     .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
-    game1::brainy::spawn_brainy_ferris(&mut commands, Vec3::new(0.0, 200.0, 0.0));
+
+    let mut rng = thread_rng();
+    let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
+    for _ in 0..1000 {
+        game1::brainy::spawn_brainy_ferris(
+            &mut commands,
+            Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
+        );
+        // rng.sample(distr)
+    }
 
     commands
         .spawn_bundle(AsepriteBundle {

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle};
 use big_brain::prelude::*;
+use rand::Rng;
 
 use crate::{sprites, walk::VelocityWalker, TargetFlag};
 
@@ -52,7 +53,7 @@ fn run_away_action_system(
         if let Ok((transform, target_distance, mut walker)) = walkers.get_mut(*actor) {
             match *state {
                 ActionState::Requested => {
-                    println!("Time to run away!");
+                    // println!("Time to run away!");
                     // let tv = (target_pos - transform.translation).normalize();
                     // walker.velocity = -0.5 * tv;
 
@@ -101,7 +102,7 @@ fn follow_target_action_system(
         if let Ok((transform, target_distance, mut walker)) = walkers.get_mut(*actor) {
             match *state {
                 ActionState::Requested => {
-                    println!("Time to follow the target!");
+                    // println!("Time to follow the target!");
                     // let tv = (target_pos - transform.translation).normalize();
                     // walker.velocity = -0.5 * tv;
 
@@ -175,6 +176,9 @@ pub fn curious_scorer_system(
 }
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
+    let mut rng = rand::thread_rng();
+    let dist = rand_distr::Normal::new(128.0f32, 32.0f32).unwrap();
+
     commands
         .spawn_bundle(AsepriteBundle {
             aseprite: sprites::Ferris::sprite(),
@@ -195,9 +199,19 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 .picker(FirstToScore { threshold: 0.8 })
                 // Technically these are supposed to be ActionBuilders and
                 // ScorerBuilders, but our Clone impls simplify our code here.
-                .when(Fearful, RunAway { until: 128.0 })
-                .picker(FirstToScore { threshold: 0.8 })
-                .when(Curious, GoToTarget { until: 128.0 }),
+                .when(
+                    Fearful,
+                    RunAway {
+                        until: rng.sample(dist),
+                    },
+                )
+                // .picker(FirstToScore { threshold: 0.8 })
+                .when(
+                    Curious,
+                    GoToTarget {
+                        until: rng.sample(dist),
+                    },
+                ),
         );
 }
 
