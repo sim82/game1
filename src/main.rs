@@ -53,6 +53,7 @@ pub fn setup(mut commands: Commands) {
     //         velocity: Vec3::ZERO,
     //     })
     //     .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
+    game1::brainy::spawn_brainy_ferris(&mut commands, Vec3::new(0.0, 200.0, 0.0));
 
     commands
         .spawn_bundle(AsepriteBundle {
@@ -131,26 +132,12 @@ fn apply_input(
         if keyboard_input.pressed(KeyCode::S) {
             walk_velocity.velocity.y = -1.0;
         }
+        walk_velocity.velocity = walk_velocity.velocity.normalize();
     }
 }
 
 pub fn spawn_ferris_on_click(mut commands: Commands, mut click_events: EventReader<ClickEvent>) {
     for event in click_events.iter() {
-        commands
-            .spawn_bundle(AsepriteBundle {
-                aseprite: sprites::Ferris::sprite(),
-                animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
-                transform: Transform {
-                    scale: Vec3::splat(4.),
-                    translation: event.pos,
-                    ..Default::default()
-                },
-
-                ..Default::default()
-            })
-            .insert(WalkToTarget)
-            .insert(VelocityWalker {
-                velocity: Vec3::ZERO,
-            });
+        game1::brainy::spawn_brainy_ferris(&mut commands, event.pos);
     }
 }
