@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle};
-use big_brain::prelude::*;
+use big_brain::{evaluators::LinearEvaluator, prelude::*};
 use rand::Rng;
 
 use crate::{sprites, walk::VelocityWalker, TargetFlag};
@@ -160,21 +160,23 @@ pub fn fear_scorer_system(
 }
 
 #[derive(Clone, Component, Debug)]
-pub struct Curious;
+pub struct Curious {
+    within: f32,
+}
 
 pub fn curious_scorer_system(
     target_distance: Query<&TargetDistanceProbe>,
     // Same dance with the Actor here, but now we use look up Score instead of ActionState.
-    mut query: Query<(&Actor, &mut Score), With<Curious>>,
+    mut query: Query<(&Actor, &mut Score, &Curious)>,
 ) {
     info!("curious scorer {:?}", std::thread::current());
 
-    for (Actor(actor), mut score) in query.iter_mut() {
+    for (Actor(actor), mut score, curious) in query.iter_mut() {
         debug!("curious_scorer {:?} {:?}", std::thread::current(), actor);
 
         if let Ok(target_distance) = target_distance.get(*actor) {
             // become curious if more than 200 away from target
-            if target_distance.d > 200.0 {
+            if target_distance.d > curious.within {
                 score.set(1.0)
             } else {
                 score.set(0.0)
@@ -186,6 +188,10 @@ pub fn curious_scorer_system(
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
     let mut rng = rand::thread_rng();
     let dist = rand_distr::Normal::new(128.0f32, 32.0f32).unwrap();
+
+    let curious_min = rng.sample(dist);
+
+    let curious_max = curious_min + rng.sample(dist);
 
     commands
         .spawn_bundle(AsepriteBundle {
@@ -214,10 +220,10 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                     },
                 )
                 .when(
-                    Curious,
-                    GoToTarget {
-                        until: rng.sample(dist),
+                    Curious {
+                        within: curious_max,
                     },
+                    GoToTarget { until: curious_min },
                 ),
         );
 }
