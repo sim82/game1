@@ -17,6 +17,7 @@ fn measure_target_distance(
     mut query: Query<(&mut TargetDistanceProbe, &Transform)>,
     target_query: Query<&Transform, With<TargetFlag>>,
 ) {
+    info!("measure target distance {:?}", std::thread::current());
     let target_pos = target_query
         .iter()
         .next()
@@ -137,7 +138,10 @@ pub fn fear_scorer_system(
     // Same dance with the Actor here, but now we use look up Score instead of ActionState.
     mut query: Query<(&Actor, &mut Score), With<Fearful>>,
 ) {
+    info!("fear scorer {:?}", std::thread::current());
+
     for (Actor(actor), mut score) in query.iter_mut() {
+        debug!("fear_scorer {:?} {:?}", std::thread::current(), actor);
         if let Ok(target_distance) = target_distance.get(*actor) {
             // This is really what the job of a Scorer is. To calculate a
             // generic "Utility" score that the Big Brain engine will compare
@@ -163,7 +167,11 @@ pub fn curious_scorer_system(
     // Same dance with the Actor here, but now we use look up Score instead of ActionState.
     mut query: Query<(&Actor, &mut Score), With<Curious>>,
 ) {
+    info!("curious scorer {:?}", std::thread::current());
+
     for (Actor(actor), mut score) in query.iter_mut() {
+        debug!("curious_scorer {:?} {:?}", std::thread::current(), actor);
+
         if let Ok(target_distance) = target_distance.get(*actor) {
             // become curious if more than 200 away from target
             if target_distance.d > 200.0 {
@@ -205,7 +213,6 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                         until: rng.sample(dist),
                     },
                 )
-                // .picker(FirstToScore { threshold: 0.8 })
                 .when(
                     Curious,
                     GoToTarget {
@@ -219,7 +226,7 @@ impl Plugin for BrainyPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(BigBrainPlugin)
             .register_type::<TargetDistanceProbe>()
-            .add_system(measure_target_distance)
+            .add_system_to_stage(CoreStage::PostUpdate, measure_target_distance)
             .add_system_to_stage(BigBrainStage::Actions, run_away_action_system)
             .add_system_to_stage(BigBrainStage::Actions, follow_target_action_system)
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)

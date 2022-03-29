@@ -35,6 +35,25 @@ fn main() {
     println!("Hello, world!");
 }
 
+fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
+    commands
+        .spawn_bundle(AsepriteBundle {
+            aseprite: sprites::Ferris::sprite(),
+            animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+            transform: Transform {
+                scale: Vec3::splat(4.),
+                translation: pos,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(WalkToTarget)
+        .insert(VelocityWalker {
+            velocity: Vec3::ZERO,
+        })
+        .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
+}
+
 pub fn setup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
@@ -57,12 +76,15 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
-    for _ in 0..1000 {
+    for _ in 0..100000 {
+        // spawn_stupid_ferris(
+        //     &mut commands,
+        //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
+        // );
         game1::brainy::spawn_brainy_ferris(
             &mut commands,
             Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
         );
-        // rng.sample(distr)
     }
 
     commands
