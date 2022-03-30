@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+pub mod ai;
 pub mod brainy;
 pub mod pointer;
 pub mod walk;

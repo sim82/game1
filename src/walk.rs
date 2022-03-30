@@ -1,9 +1,6 @@
 use crate::{pointer::MouseGrabState, sprites};
-use bevy::{
-    input::mouse::{MouseButtonInput, MouseMotion, MouseWheel},
-    prelude::*,
-};
-use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
+use bevy::prelude::*;
+use bevy_aseprite::AsepriteAnimation;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -18,7 +15,7 @@ fn apply_velocity(
         &mut AsepriteAnimation,
         &VelocityWalker,
     )>,
-    mut grab_state: ResMut<MouseGrabState>,
+    grab_state: ResMut<MouseGrabState>,
 ) {
     if !grab_state.shall_grab {
         return;

@@ -1,5 +1,5 @@
 use bevy::{
-    input::mouse::{MouseButtonInput, MouseMotion, MouseWheel},
+    input::mouse::{MouseButtonInput, MouseMotion},
     prelude::*,
 };
 
@@ -43,12 +43,9 @@ pub struct ClickEvent {
 pub struct MousePointerFlag;
 
 pub fn mouse_input_system(
-    mut commands: Commands,
     mut query: Query<&mut Transform, With<MousePointerFlag>>,
     mut mouse_button_input_events: EventReader<MouseButtonInput>,
     mut mouse_motion_events: EventReader<MouseMotion>,
-    mut _cursor_moved_events: EventReader<CursorMoved>,
-    mut _mouse_wheel_events: EventReader<MouseWheel>,
     mut primary_pointer: ResMut<PrimaryPointerPos>,
     grab_state: Res<MouseGrabState>,
     mut click_events: EventWriter<ClickEvent>,

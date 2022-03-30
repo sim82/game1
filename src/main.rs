@@ -1,16 +1,11 @@
-use bevy::{
-    input::{
-        mouse::{MouseButtonInput, MouseMotion, MouseWheel},
-        system::exit_on_esc_system,
-    },
-    prelude::*,
-};
+use bevy::{input::system::exit_on_esc_system, prelude::*};
 // use bevy_aseprite::AsepritePlugin;
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
-use bevy_inspector_egui::WorldInspectorPlugin;
+
+use big_brain::BigBrainPlugin;
 use game1::{
-    brainy::BrainyPlugin,
-    pointer::{ClickEvent, MouseGrabState, MousePointerFlag, PointerPlugin},
+    ai::{util::TargetDistanceProbe, AiPlugin},
+    pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
     sprites,
     walk::{VelocityWalker, WalkPlugin},
     TargetFlag,
@@ -24,7 +19,8 @@ fn main() {
         // .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(WalkPlugin)
-        .add_plugin(BrainyPlugin)
+        .add_plugin(BigBrainPlugin)
+        .add_plugin(AiPlugin)
         .add_startup_system(setup)
         .add_system(walk_to_target)
         .add_system(apply_input)
@@ -35,7 +31,7 @@ fn main() {
     println!("Hello, world!");
 }
 
-fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
+pub fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
     commands
         .spawn_bundle(AsepriteBundle {
             aseprite: sprites::Ferris::sprite(),
@@ -51,7 +47,7 @@ fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
         .insert(VelocityWalker {
             velocity: Vec3::ZERO,
         })
-        .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
+        .insert(TargetDistanceProbe { d: 0.0 });
 }
 
 pub fn setup(mut commands: Commands) {
@@ -76,7 +72,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
-    for _ in 0..5 {
+    for _ in 0..1 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
