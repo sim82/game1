@@ -15,11 +15,11 @@ use crate::{
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
     let mut rng = rand::thread_rng();
-    let dist = rand_distr::Normal::new(128.0f32, 32.0f32).unwrap();
+    let dist = rand_distr::Normal::new(0.8f32, 0.2f32).unwrap();
 
-    let curious_min = rng.sample(dist);
+    // let curious_min = rng.sample(dist);
 
-    let _curious_max = curious_min + rng.sample(dist);
+    // let _curious_max = curious_min + rng.sample(dist);
 
     commands
         .spawn_bundle(AsepriteBundle {
@@ -38,19 +38,13 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
         .insert(TargetDistanceProbe { d: 0.0 })
         .insert(
             Thinker::build()
-                .picker(FirstToScore { threshold: 0.8 })
+                .picker(FirstToScore {
+                    threshold: rng.sample(dist).clamp(0.0, 1.0),
+                })
                 // Technically these are supposed to be ActionBuilders and
                 // ScorerBuilders, but our Clone impls simplify our code here.
-                .when(
-                    Fear::build().within(72.0),
-                    RunAway {
-                        until: rng.sample(dist),
-                    },
-                )
-                .when(
-                    Curiousity::build().within(256.0),
-                    Follow { until: curious_min },
-                )
+                .when(Fear::build().within(100.0), RunAway {})
+                .when(Curiousity::build().within(300.0), Follow { until: 32.0 })
                 .otherwise(JiggleAround::default()),
         );
 }

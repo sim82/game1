@@ -39,7 +39,7 @@ pub fn follow_action_system(
                         // info!("walk_velocity: {:?}", walker.velocity);
                     } else {
                         walker.velocity = Vec3::ZERO;
-                        *state = ActionState::Success;
+                        // *state = ActionState::Success;
                     }
                 }
                 // All Actions should make sure to handle cancellations!

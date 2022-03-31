@@ -3,9 +3,10 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 
 #[derive(Clone, Component, Debug)]
-pub struct RunAway {
-    pub until: f32,
-}
+pub struct RunAway;
+//  {
+// pub until: f32,
+// }
 
 // Action systems execute according to a state machine, where the states are
 // labeled by ActionState.
@@ -34,14 +35,14 @@ pub fn run_away_action_system(
                     *state = ActionState::Executing;
                 }
                 ActionState::Executing => {
-                    if target_distance.d <= run_away.until {
-                        let tv = (target_pos - transform.translation).normalize();
-                        walker.velocity = -1.0 * tv;
-                        // info!("walk_velocity: {:?}", walker.velocity);
-                    } else {
-                        walker.velocity = Vec3::ZERO;
-                        *state = ActionState::Success;
-                    }
+                    // if target_distance.d <= run_away.until {
+                    let tv = (target_pos - transform.translation).normalize();
+                    walker.velocity = -1.0 * tv;
+                    // info!("walk_velocity: {:?}", walker.velocity);
+                    // } else {
+                    //     walker.velocity = Vec3::ZERO;
+                    //     *state = ActionState::Success;
+                    // }
                 }
                 // All Actions should make sure to handle cancellations!
                 ActionState::Cancelled => {
@@ -49,6 +50,9 @@ pub fn run_away_action_system(
                 }
                 _ => {}
             }
+        } else {
+            // no VelocityWalker and/or TargetDistance -> fail
+            *state = ActionState::Failure;
         }
     }
 }
