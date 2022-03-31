@@ -5,6 +5,7 @@ use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 use big_brain::BigBrainPlugin;
 use game1::{
     ai::{util::TargetDistanceProbe, AiPlugin},
+    crab_move::{self, CrabMovePlugin, CrabMoveWalker},
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
     sprites,
     walk::{VelocityWalker, WalkPlugin},
@@ -16,9 +17,10 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(AsepritePlugin)
-        // .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(WalkPlugin)
+        .add_plugin(CrabMovePlugin)
         .add_plugin(BigBrainPlugin)
         .add_plugin(AiPlugin)
         .add_startup_system(setup)
@@ -26,6 +28,8 @@ fn main() {
         .add_system(apply_input)
         .add_system(exit_on_esc_system)
         .add_system(spawn_ferris_on_click)
+        .add_system(pew_move_system)
+        .add_system(time_to_live_reaper_system)
         .register_type::<VelocityWalker>()
         .run();
     println!("Hello, world!");
@@ -72,7 +76,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
-    for _ in 0..10 {
+    for _ in 0..1 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -96,9 +100,7 @@ pub fn setup(mut commands: Commands) {
             ..Default::default()
         })
         .insert(InputTarget)
-        .insert(VelocityWalker {
-            velocity: Vec3::ZERO,
-        })
+        .insert(CrabMoveWalker::default())
         .insert(TargetFlag);
 
     commands
@@ -143,29 +145,91 @@ fn walk_to_target(
 }
 
 fn apply_input(
-    mut query: Query<&mut VelocityWalker, With<InputTarget>>,
+    mut commands: Commands,
+    mut query: Query<(&mut CrabMoveWalker, &Transform), With<InputTarget>>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
-    for mut walk_velocity in query.iter_mut() {
-        walk_velocity.velocity = Vec3::ZERO;
-        if keyboard_input.pressed(KeyCode::A) {
-            walk_velocity.velocity.x = -1.0;
+    for (mut walk_velocity, transform) in query.iter_mut() {
+        walk_velocity.direction = crab_move::Direction::None;
+        if keyboard_input.pressed(KeyCode::A) && keyboard_input.pressed(KeyCode::W) {
+            walk_velocity.direction = crab_move::Direction::NorthWest;
+        } else if keyboard_input.pressed(KeyCode::A) && keyboard_input.pressed(KeyCode::S) {
+            walk_velocity.direction = crab_move::Direction::SouthWest;
+        } else if keyboard_input.pressed(KeyCode::A) {
+            walk_velocity.direction = crab_move::Direction::West;
+        } else if keyboard_input.pressed(KeyCode::D) && keyboard_input.pressed(KeyCode::W) {
+            walk_velocity.direction = crab_move::Direction::NorthEast;
+        } else if keyboard_input.pressed(KeyCode::D) && keyboard_input.pressed(KeyCode::S) {
+            walk_velocity.direction = crab_move::Direction::SouthEast;
+        } else if keyboard_input.pressed(KeyCode::D) {
+            walk_velocity.direction = crab_move::Direction::East;
         }
-        if keyboard_input.pressed(KeyCode::D) {
-            walk_velocity.velocity.x = 1.0;
+        if keyboard_input.just_pressed(KeyCode::J) {
+            commands
+                .spawn_bundle(AsepriteBundle {
+                    aseprite: sprites::Pew::sprite(),
+                    // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+                    transform: Transform {
+                        scale: Vec3::splat(4.),
+                        translation: transform.translation,
+                        ..Default::default()
+                    },
+
+                    ..Default::default()
+                })
+                .insert(Pew(false))
+                .insert(TimeToLive(10.0));
+        } else if keyboard_input.just_pressed(KeyCode::K) {
+            commands
+                .spawn_bundle(AsepriteBundle {
+                    aseprite: sprites::Pew::sprite(),
+                    // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+                    transform: Transform {
+                        scale: Vec3::splat(4.),
+                        translation: transform.translation,
+                        ..Default::default()
+                    },
+
+                    ..Default::default()
+                })
+                .insert(Pew(true))
+                .insert(TimeToLive(10.0));
         }
-        if keyboard_input.pressed(KeyCode::W) {
-            walk_velocity.velocity.y = 1.0;
-        }
-        if keyboard_input.pressed(KeyCode::S) {
-            walk_velocity.velocity.y = -1.0;
-        }
-        walk_velocity.velocity = walk_velocity.velocity.normalize();
     }
 }
 
 pub fn spawn_ferris_on_click(mut commands: Commands, mut click_events: EventReader<ClickEvent>) {
     for event in click_events.iter() {
         game1::brainy::spawn_brainy_ferris(&mut commands, event.pos);
+    }
+}
+
+#[derive(Component)]
+pub struct Pew(bool);
+#[derive(Component)]
+pub struct TimeToLive(f32);
+
+pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>) {
+    for (Pew(right), mut transform) in query.iter_mut() {
+        let dir = if *right {
+            Vec3::new(1.0, 0.0, 0.0)
+        } else {
+            Vec3::new(-1.0, 0.0, 0.0)
+        } * time.delta_seconds()
+            * 100.0;
+        transform.translation += dir;
+    }
+}
+
+pub fn time_to_live_reaper_system(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut TimeToLive)>,
+) {
+    for (entity, mut ttl) in query.iter_mut() {
+        ttl.0 -= time.delta_seconds();
+        if ttl.0 <= 0.0 {
+            commands.entity(entity).despawn();
+        }
     }
 }
