@@ -618,6 +618,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_prototype_debug_lines"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25f2e9dc2d09aba50598cbe1727e6e3945c1291e159c79a89243398f88bb4b59"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_reflect"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1553,9 +1562,11 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_aseprite",
  "bevy_asset_loader",
+ "bevy_prototype_debug_lines",
  "big-brain",
  "rand",
  "rand_distr",
+ "rtriangulate",
 ]
 
 [[package]]
@@ -2826,6 +2837,15 @@ dependencies = [
  "base64",
  "bitflags",
  "serde",
+]
+
+[[package]]
+name = "rtriangulate"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c737bd8a6b5c105ef1ef2db5af46b7e69d8fb03c6213d64973c551f5ff5c1697"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]

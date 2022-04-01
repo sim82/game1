@@ -63,7 +63,7 @@ pub fn mouse_input_system(
     }
     for event in mouse_button_input_events.iter() {
         if event.button == MouseButton::Left && event.state.is_pressed() {
-            info!("pressed");
+            // info!("pressed");
             click_events.send(ClickEvent {
                 pos: primary_pointer.pos,
             })

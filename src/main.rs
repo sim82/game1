@@ -6,10 +6,11 @@ use big_brain::BigBrainPlugin;
 use game1::{
     ai::{util::TargetDistanceProbe, AiPlugin},
     crab_move::{self, CrabMovePlugin, CrabMoveWalker},
+    path::{PathPlugin, Waypoint},
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
     sprites,
     walk::{VelocityWalker, WalkPlugin},
-    TargetFlag,
+    Pew, TargetFlag, TimeToLive,
 };
 use rand::{thread_rng, Rng};
 
@@ -17,19 +18,22 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(AsepritePlugin)
-        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
+        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(WalkPlugin)
         .add_plugin(CrabMovePlugin)
         .add_plugin(BigBrainPlugin)
         .add_plugin(AiPlugin)
+        .add_plugin(PathPlugin)
+        .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::default())
         .add_startup_system(setup)
         .add_system(walk_to_target)
         .add_system(apply_input)
         .add_system(exit_on_esc_system)
-        .add_system(spawn_ferris_on_click)
-        .add_system(pew_move_system)
-        .add_system(time_to_live_reaper_system)
+        // .add_system(spawn_ferris_on_click)
+        .add_system(spawn_waypoint_on_click)
+        .add_system(game1::pew_move_system)
+        .add_system(game1::time_to_live_reaper_system)
         .register_type::<VelocityWalker>()
         .run();
     println!("Hello, world!");
@@ -76,7 +80,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
-    for _ in 0..1 {
+    for _ in 0..10 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -204,32 +208,11 @@ pub fn spawn_ferris_on_click(mut commands: Commands, mut click_events: EventRead
     }
 }
 
-#[derive(Component)]
-pub struct Pew(bool);
-#[derive(Component)]
-pub struct TimeToLive(f32);
-
-pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>) {
-    for (Pew(right), mut transform) in query.iter_mut() {
-        let dir = if *right {
-            Vec3::new(1.0, 0.0, 0.0)
-        } else {
-            Vec3::new(-1.0, 0.0, 0.0)
-        } * time.delta_seconds()
-            * 100.0;
-        transform.translation += dir;
-    }
-}
-
-pub fn time_to_live_reaper_system(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut query: Query<(Entity, &mut TimeToLive)>,
-) {
-    for (entity, mut ttl) in query.iter_mut() {
-        ttl.0 -= time.delta_seconds();
-        if ttl.0 <= 0.0 {
-            commands.entity(entity).despawn();
-        }
+pub fn spawn_waypoint_on_click(mut commands: Commands, mut click_events: EventReader<ClickEvent>) {
+    for event in click_events.iter() {
+        commands
+            .spawn()
+            .insert(Waypoint)
+            .insert(Transform::from_translation(event.pos));
     }
 }
