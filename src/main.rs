@@ -187,7 +187,7 @@ fn apply_input(
             commands
                 .spawn_bundle(AsepriteBundle {
                     aseprite: sprites::Pew::sprite(),
-                    // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+                    animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                     transform: Transform {
                         scale: Vec3::splat(4.),
                         translation: transform.translation,

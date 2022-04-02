@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{ai::util::TargetDistanceProbe, walk::VelocityWalker, TargetFlag};
+use crate::{ai::util::TargetDistanceProbe, movement::walk::VelocityWalker, TargetFlag};
 
 #[derive(Clone, Component, Debug)]
 pub struct Follow {

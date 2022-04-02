@@ -16,7 +16,7 @@ impl Plugin for AiPlugin {
             },
             scorers::{
                 curiosity::curiousity_scorer_system, fear::fear_scorer_system,
-                pew_hit::pew_hit_scorer_system,
+                pew_incoming::pew_incoming_scorer_system,
             },
         };
 
@@ -28,6 +28,6 @@ impl Plugin for AiPlugin {
             .add_system_to_stage(BigBrainStage::Actions, dodge_pew_action_system)
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)
-            .add_system_to_stage(BigBrainStage::Scorers, pew_hit_scorer_system);
+            .add_system_to_stage(BigBrainStage::Scorers, pew_incoming_scorer_system);
     }
 }

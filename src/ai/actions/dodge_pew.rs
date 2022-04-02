@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{walk::VelocityWalker, Pew};
+use crate::{movement::walk::VelocityWalker, Pew};
 use rand::Rng;
 
 #[derive(Component, Debug, Clone)]

@@ -8,13 +8,17 @@ pub struct VelocityWalker {
     pub velocity: Vec3,
 }
 
-fn apply_velocity(
+#[derive(Component)]
+pub struct BeingZapped;
+
+fn apply_velocity_system(
     mut query: Query<(
         Entity,
         &mut Transform,
         &mut AsepriteAnimation,
         &VelocityWalker,
     )>,
+    mut zapped_query: Query<Entity, With<BeingZapped>>,
     grab_state: ResMut<MouseGrabState>,
 ) {
     if !grab_state.shall_grab {
@@ -22,6 +26,13 @@ fn apply_velocity(
     }
 
     for (entity, mut transform, mut animation, walk_velocity) in query.iter_mut() {
+        if zapped_query.get(entity).is_ok() {
+            if !animation.is_tag(sprites::Ferris::tags::ZAP) {
+                *animation = AsepriteAnimation::from(sprites::Ferris::tags::ZAP)
+            }
+            continue;
+        }
+
         let speed = walk_velocity.velocity.length();
 
         debug!(
@@ -51,6 +62,6 @@ pub struct WalkPlugin;
 
 impl Plugin for WalkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(apply_velocity);
+        app.add_system(apply_velocity_system);
     }
 }

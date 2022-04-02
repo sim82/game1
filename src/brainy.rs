@@ -8,11 +8,11 @@ use crate::{
         actions::{
             dodge_pew::DodgePew, follow::Follow, jiggle_around::JiggleAround, run_away::RunAway,
         },
-        scorers::{curiosity::Curiousity, fear::Fear, pew_hit::PewHit},
+        scorers::{curiosity::Curiousity, fear::Fear, pew_incoming::PewIncoming},
         util::TargetDistanceProbe,
     },
+    movement::walk::VelocityWalker,
     sprites,
-    walk::VelocityWalker,
 };
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
@@ -45,7 +45,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 })
                 // Technically these are supposed to be ActionBuilders and
                 // ScorerBuilders, but our Clone impls simplify our code here.
-                .when(PewHit::build(), DodgePew::build())
+                .when(PewIncoming::build(), DodgePew::build())
                 .when(Fear::build().within(100.0), RunAway {})
                 .when(Curiousity::build().within(600.0), Follow { until: 32.0 })
                 .otherwise(JiggleAround::default()),

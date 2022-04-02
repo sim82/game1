@@ -6,9 +6,9 @@ use big_brain::{
 };
 
 #[derive(Component)]
-pub struct PewHit;
+pub struct PewIncoming;
 
-impl PewHit {
+impl PewIncoming {
     pub fn build() -> PewHitBuilder {
         PewHitBuilder::default()
     }
@@ -26,15 +26,15 @@ impl PewHitBuilder {
 }
 impl ScorerBuilder for PewHitBuilder {
     fn build(&self, cmd: &mut Commands, scorer: Entity, _actor: Entity) {
-        cmd.entity(scorer).insert(PewHit);
+        cmd.entity(scorer).insert(PewIncoming);
     }
 }
 
 // Looks familiar? It's a lot like Actions!
-pub fn pew_hit_scorer_system(
+pub fn pew_incoming_scorer_system(
     // target_distance: Query<&TargetDistanceProbe>,
     // Same dance with the Actor here, but now we use look up Score instead of ActionState.
-    mut query: Query<(&Actor, &mut Score), With<PewHit>>,
+    mut query: Query<(&Actor, &mut Score), With<PewIncoming>>,
     pew_query: Query<(&Transform, &Pew)>,
     transform_query: Query<&Transform>,
 ) {

@@ -2,10 +2,9 @@ use bevy::prelude::*;
 
 pub mod ai;
 pub mod brainy;
-pub mod crab_move;
+pub mod movement;
 pub mod path;
 pub mod pointer;
-pub mod walk;
 
 pub mod sprites {
     use bevy_aseprite::aseprite;
