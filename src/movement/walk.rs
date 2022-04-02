@@ -1,4 +1,4 @@
-use crate::{pointer::MouseGrabState, sprites};
+use crate::{pointer::MouseGrabState, sprites, Pew};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteAnimation;
 
@@ -9,7 +9,46 @@ pub struct VelocityWalker {
 }
 
 #[derive(Component)]
+#[component(storage = "SparseSet")]
 pub struct BeingZapped;
+
+#[allow(clippy::type_complexity)]
+fn check_pew_intersection_system(
+    mut commands: Commands,
+    query_non_zapped: Query<
+        (Entity, &mut Transform),
+        (With<VelocityWalker>, Without<BeingZapped>, Without<Pew>),
+    >,
+    query_zapped: Query<
+        (Entity, &mut Transform),
+        (With<VelocityWalker>, With<BeingZapped>, Without<Pew>),
+    >,
+    query_pew: Query<&Transform, With<Pew>>,
+) {
+    let pew_pos = query_pew
+        .iter()
+        .map(|transform| transform.translation)
+        .collect::<Vec<_>>();
+
+    const ZAP_DIST: f32 = 32.0;
+
+    for (entity, Transform { translation, .. }) in query_non_zapped.iter() {
+        if pew_pos
+            .iter()
+            .any(|pew| (*pew - *translation).length() < ZAP_DIST)
+        {
+            commands.entity(entity).insert(BeingZapped);
+        }
+    }
+    for (entity, Transform { translation, .. }) in query_zapped.iter() {
+        if !pew_pos
+            .iter()
+            .any(|pew| (*pew - *translation).length() < ZAP_DIST)
+        {
+            commands.entity(entity).remove::<BeingZapped>();
+        }
+    }
+}
 
 fn apply_velocity_system(
     mut query: Query<(
@@ -62,6 +101,7 @@ pub struct WalkPlugin;
 
 impl Plugin for WalkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(apply_velocity_system);
+        app.add_system(check_pew_intersection_system)
+            .add_system(apply_velocity_system);
     }
 }
