@@ -1,17 +1,19 @@
-use bevy::{input::system::exit_on_esc_system, prelude::*};
+use bevy::{diagnostic::DiagnosticsPlugin, input::system::exit_on_esc_system, prelude::*};
 // use bevy_aseprite::AsepritePlugin;
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 
 use big_brain::BigBrainPlugin;
 use game1::{
-    ai::{util::TargetDistanceProbe, AiPlugin},
+    ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin},
     movement::{
         crab_move::{self, CrabMovePlugin, CrabMoveWalker},
         walk::{VelocityWalker, WalkPlugin},
     },
     path::{PathPlugin, Waypoint},
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
-    sprites, Pew, TargetFlag, TimeToLive,
+    sprites,
+    ui::IngameUiPlugin,
+    Pew, TargetFlag, TimeToLive,
 };
 use rand::{thread_rng, Rng};
 
@@ -19,13 +21,16 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(AsepritePlugin)
-        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_plugin(PointerPlugin)
         .add_plugin(WalkPlugin)
         .add_plugin(CrabMovePlugin)
         .add_plugin(BigBrainPlugin)
         .add_plugin(AiPlugin)
         .add_plugin(PathPlugin)
+        .add_plugin(DiagnosticsPlugin)
+        .add_plugin(AiDiagnosticsPlugin)
+        .add_plugin(IngameUiPlugin)
         .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::default())
         .add_startup_system(setup)
         .add_system(walk_to_target)
@@ -81,7 +86,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
-    for _ in 0..10 {
+    for _ in 0..1 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),

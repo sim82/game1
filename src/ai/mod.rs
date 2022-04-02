@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use big_brain::BigBrainStage;
 
 pub mod actions;
+pub mod diagnostics;
 pub mod scorers;
 pub mod util;
-
 pub struct AiPlugin;
 
 impl Plugin for AiPlugin {

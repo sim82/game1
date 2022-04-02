@@ -5,6 +5,7 @@ pub mod brainy;
 pub mod movement;
 pub mod path;
 pub mod pointer;
+pub mod ui;
 
 pub mod sprites {
     use bevy_aseprite::aseprite;

@@ -13,6 +13,7 @@ use crate::{
     },
     movement::walk::VelocityWalker,
     sprites,
+    ui::TrackingOverlayTarget,
 };
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
@@ -49,5 +50,8 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 .when(Fear::build().within(100.0), RunAway {})
                 .when(Curiousity::build().within(600.0), Follow { until: 32.0 })
                 .otherwise(JiggleAround::default()),
-        );
+        )
+        .insert(TrackingOverlayTarget {
+            text: "meeeeeep".into(),
+        });
 }
