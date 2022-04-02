@@ -74,6 +74,6 @@ pub fn curiousity_scorer_system(
             // info!("curiosity: {}", curiosity.curiosity);
         }
         score.set(curiosity.curiosity);
-        curiosity.curiosity = (curiosity.curiosity - 0.2 * 0.016).clamp(0.0, 1.0);
+        curiosity.curiosity = (curiosity.curiosity - 0.2 * time.delta_seconds()).clamp(0.0, 1.0);
     }
 }

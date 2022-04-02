@@ -39,6 +39,7 @@ impl ScorerBuilder for FearBuilder {
 
 // Looks familiar? It's a lot like Actions!
 pub fn fear_scorer_system(
+    time: Res<Time>,
     target_distance: Query<&TargetDistanceProbe>,
     // Same dance with the Actor here, but now we use look up Score instead of ActionState.
     mut query: Query<(&Actor, &mut Score, &mut Fear)>,
@@ -52,6 +53,6 @@ pub fn fear_scorer_system(
             // info!("fear: {}", fear.fear);
         }
         score.set(fear.fear);
-        fear.fear = (fear.fear - 0.2 * 0.016).clamp(0.0, 1.0);
+        fear.fear = (fear.fear - 0.2 * time.delta_seconds()).clamp(0.0, 1.0);
     }
 }
