@@ -5,12 +5,13 @@ use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 use big_brain::BigBrainPlugin;
 use game1::{
     ai::{util::TargetDistanceProbe, AiPlugin},
-    crab_move::{self, CrabMovePlugin, CrabMoveWalker},
+    movement::{
+        crab_move::{self, CrabMovePlugin, CrabMoveWalker},
+        walk::{VelocityWalker, WalkPlugin},
+    },
     path::{PathPlugin, Waypoint},
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
-    sprites,
-    walk::{VelocityWalker, WalkPlugin},
-    Pew, TargetFlag, TimeToLive,
+    sprites, Pew, TargetFlag, TimeToLive,
 };
 use rand::{thread_rng, Rng};
 
@@ -172,7 +173,7 @@ fn apply_input(
             commands
                 .spawn_bundle(AsepriteBundle {
                     aseprite: sprites::Pew::sprite(),
-                    // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+                    animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                     transform: Transform {
                         scale: Vec3::splat(4.),
                         translation: transform.translation,
