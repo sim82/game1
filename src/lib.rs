@@ -5,6 +5,7 @@ pub mod brainy;
 pub mod movement;
 pub mod path;
 pub mod pointer;
+pub mod tilemap;
 pub mod ui;
 
 pub mod sprites {

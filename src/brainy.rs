@@ -51,7 +51,8 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 .when(Curiousity::build().within(600.0), Follow { until: 32.0 })
                 .otherwise(JiggleAround::default()),
         )
-        .insert(TrackingOverlayTarget {
-            text: "meeeeeep".into(),
-        });
+        // .insert(TrackingOverlayTarget {
+        //     text: "meeeeeep".into(),
+        // })
+        ;
 }
