@@ -16,6 +16,12 @@ use crate::{
     ui::TrackingOverlayTarget,
 };
 
+mod tune {
+    pub const FEAR_DISTANCE: f32 = 50.0;
+    pub const CURIOSITY_DISTANCE: f32 = 150.0;
+    pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
+}
+
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
     let mut rng = rand::thread_rng();
     let dist = rand_distr::Normal::new(0.8f32, 0.2f32).unwrap();
@@ -29,7 +35,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
             aseprite: sprites::Ferris::sprite(),
             animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
-                scale: Vec3::splat(4.),
+                scale: Vec3::splat(1.),
                 translation: pos,
                 ..Default::default()
             },
@@ -47,8 +53,8 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 // Technically these are supposed to be ActionBuilders and
                 // ScorerBuilders, but our Clone impls simplify our code here.
                 .when(PewIncoming::build(), DodgePew::build())
-                .when(Fear::build().within(100.0), RunAway {})
-                .when(Curiousity::build().within(600.0), Follow { until: 32.0 })
+                .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
+                .when(Curiousity::build().within(tune::CURIOSITY_DISTANCE), Follow { until: tune::FOLLOW_MIN_DISTANCE })
                 .otherwise(JiggleAround::default()),
         )
         // .insert(TrackingOverlayTarget {

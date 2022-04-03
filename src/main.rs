@@ -29,7 +29,7 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_plugin(AsepritePlugin)
         .add_plugin(BigBrainPlugin)
-        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::default())
         //
         // internal plugins
@@ -70,7 +70,7 @@ pub fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
             aseprite: sprites::Ferris::sprite(),
             animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
-                scale: Vec3::splat(4.),
+                scale: Vec3::splat(1.),
                 translation: pos,
                 ..Default::default()
             },
@@ -104,15 +104,19 @@ pub fn setup(mut commands: Commands) {
     //     .insert(game1::brainy::TargetDistanceProbe { d: 0.0 });
 
     let mut rng = thread_rng();
-    let dist = rand_distr::Normal::new(0.0f32, 200.0f32).unwrap();
-    for _ in 0..1 {
+    let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
+    for _ in 0..10 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
         // );
         game1::brainy::spawn_brainy_ferris(
             &mut commands,
-            Vec3::new(rng.sample(dist) + 600.0, rng.sample(dist) + 400.0, 5.0),
+            Vec3::new(
+                rng.sample(dist) + 600.0 / 4.0,
+                rng.sample(dist) + 400.0 / 4.0,
+                5.0,
+            ),
         );
     }
 
@@ -121,7 +125,7 @@ pub fn setup(mut commands: Commands) {
             aseprite: sprites::Ferris::sprite(),
             animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
-                scale: Vec3::splat(4.),
+                scale: Vec3::splat(1.),
                 translation: Vec3::new(0., 100., 5.),
                 ..Default::default()
             },
@@ -137,7 +141,7 @@ pub fn setup(mut commands: Commands) {
             aseprite: sprites::Pointer::sprite(),
             // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
-                scale: Vec3::splat(4.),
+                scale: Vec3::splat(1.),
                 translation: Vec3::new(0., 100., 0.),
                 ..Default::default()
             },
@@ -150,8 +154,10 @@ pub fn setup(mut commands: Commands) {
 fn setup_camera(mut query: Query<(&mut Transform, &mut OrthographicProjection), Added<Camera>>) {
     for (mut transform, _projection) in query.iter_mut() {
         // let z = transform.translation.z;
-        transform.translation.x = 600.0;
-        transform.translation.y = 400.0;
+        transform.translation.x = 600.0 / 4.0;
+        transform.translation.y = 400.0 / 4.0;
+        transform.scale.x = 0.25;
+        transform.scale.y = 0.25;
     }
 }
 
@@ -207,7 +213,7 @@ fn apply_input(
                     aseprite: sprites::Pew::sprite(),
                     animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                     transform: Transform {
-                        scale: Vec3::splat(4.),
+                        scale: Vec3::splat(1.),
                         translation: transform.translation,
                         ..Default::default()
                     },
@@ -222,7 +228,7 @@ fn apply_input(
                     aseprite: sprites::Pew::sprite(),
                     animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                     transform: Transform {
-                        scale: Vec3::splat(4.),
+                        scale: Vec3::splat(1.),
                         translation: transform.translation,
                         ..Default::default()
                     },

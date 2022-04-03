@@ -1,4 +1,4 @@
-use crate::{pointer::MouseGrabState, sprites};
+use crate::{pointer::MouseGrabState, sprites, tune};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteAnimation;
 
@@ -39,6 +39,7 @@ impl Direction {
 }
 
 fn apply_velocity(
+    time: Res<Time>,
     mut query: Query<(
         Entity,
         &mut Transform,
@@ -61,7 +62,7 @@ fn apply_velocity(
         );
         if speed > 0.1 {
             let dir = velocity.normalize();
-            transform.translation += velocity;
+            transform.translation += tune::WALK_SPEED * dir * time.delta_seconds();
             // animation.
             if dir.x > 0.0 && !animation.is_tag(sprites::Ferris::tags::WALK_RIGHT) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT);

@@ -32,7 +32,7 @@ pub fn jiggle_around_action_system(
                     jiggle_around.left = 0.3;
                     jiggle_around.dir *= -1.0;
                     if let Ok(mut walker) = walkers.get_mut(*actor) {
-                        walker.velocity = jiggle_around.dir * 0.5;
+                        walker.velocity = jiggle_around.dir;
                     }
                 }
             }

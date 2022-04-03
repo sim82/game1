@@ -1,4 +1,4 @@
-use crate::{pointer::MouseGrabState, sprites, Pew};
+use crate::{pointer::MouseGrabState, sprites, tune, Pew};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteAnimation;
 
@@ -30,7 +30,7 @@ fn check_pew_intersection_system(
         .map(|transform| transform.translation)
         .collect::<Vec<_>>();
 
-    const ZAP_DIST: f32 = 32.0;
+    const ZAP_DIST: f32 = tune::PEW_ZAP_DISTANCE;
 
     for (entity, Transform { translation, .. }) in query_non_zapped.iter() {
         if pew_pos
@@ -51,6 +51,7 @@ fn check_pew_intersection_system(
 }
 
 fn apply_velocity_system(
+    time: Res<Time>,
     mut query: Query<(
         Entity,
         &mut Transform,
@@ -80,7 +81,7 @@ fn apply_velocity_system(
         );
         if speed > 0.1 {
             let dir = walk_velocity.velocity.normalize();
-            transform.translation += walk_velocity.velocity;
+            transform.translation += tune::WALK_SPEED * dir * time.delta_seconds();
             // animation.
             if dir.x > 0.0 && !animation.is_tag(sprites::Ferris::tags::WALK_RIGHT) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT);

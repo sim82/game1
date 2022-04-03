@@ -8,6 +8,13 @@ pub mod pointer;
 pub mod tilemap;
 pub mod ui;
 
+pub mod tune {
+    pub const WALK_SPEED: f32 = 15.0;
+    pub const PEW_SPEED: f32 = 50.0;
+    pub const PEW_ZAP_DISTANCE: f32 = 8.0;
+    pub const PEW_DETECT_FAR: f32 = 150.0;
+    pub const PEW_DETECT_NEAR: f32 = 50.0;
+}
 pub mod sprites {
     use bevy_aseprite::aseprite;
     aseprite!(pub Ferris, "assets/ferris2.0.aseprite");
@@ -32,7 +39,7 @@ pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>
         } else {
             Vec3::new(-1.0, 0.0, 0.0)
         } * time.delta_seconds()
-            * 100.0;
+            * tune::PEW_SPEED;
         transform.translation += dir;
     }
 }

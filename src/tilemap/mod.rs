@@ -92,7 +92,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     commands
         .entity(map_entity)
         .insert(map)
-        .insert(Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(4.0)))
+        .insert(Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(1.0)))
         .insert(GlobalTransform::default());
 }
 
