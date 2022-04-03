@@ -1,4 +1,11 @@
-use crate::{ai::util::TargetDistanceProbe, movement::walk::VelocityWalker, TargetFlag};
+use crate::{
+    ai::util::TargetDistanceProbe,
+    movement::{
+        crab_move::{CrabMoveDirection, CrabMoveWalker},
+        walk::VelocityWalker,
+    },
+    TargetFlag,
+};
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
@@ -11,7 +18,7 @@ pub struct RunAway;
 // Action systems execute according to a state machine, where the states are
 // labeled by ActionState.
 pub fn run_away_action_system(
-    mut walkers: Query<(&Transform, &TargetDistanceProbe, &mut VelocityWalker)>,
+    mut walkers: Query<(&Transform, &TargetDistanceProbe, &mut CrabMoveWalker)>,
     target_query: Query<&Transform, With<TargetFlag>>,
     // We execute actions by querying for their associated Action Component
     // (Drink in this case). You'll always need both Actor and ActionState.
@@ -36,8 +43,8 @@ pub fn run_away_action_system(
                 }
                 ActionState::Executing => {
                     // if target_distance.d <= run_away.until {
-                    let tv = (target_pos - transform.translation).normalize();
-                    walker.velocity = -1.0 * tv;
+                    let tv = (transform.translation - target_pos).normalize();
+                    walker.direction = CrabMoveDirection::find_nearest(tv);
                     // info!("walk_velocity: {:?}", walker.velocity);
                     // } else {
                     //     walker.velocity = Vec3::ZERO;

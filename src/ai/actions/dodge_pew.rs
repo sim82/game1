@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 
 use crate::{
-    movement::crab_move::{self, CrabMoveWalker},
+    movement::crab_move::{self, CrabMoveDirection, CrabMoveWalker},
     Pew,
 };
 use rand::Rng;
@@ -82,10 +82,10 @@ pub fn dodge_pew_action_system(
                 //     dodge_pew.direction = -1.0;
                 // }
                 let choices = [
-                    crab_move::Direction::NorthEast,
-                    crab_move::Direction::NorthWest,
-                    crab_move::Direction::SouthEast,
-                    crab_move::Direction::SouthWest,
+                    CrabMoveDirection::NorthEast,
+                    CrabMoveDirection::NorthWest,
+                    CrabMoveDirection::SouthEast,
+                    CrabMoveDirection::SouthWest,
                 ];
                 if let Ok((mut walker, _)) = walkers.get_mut(*actor) {
                     walker.direction = choices[rng.gen_range(0..choices.len())];
@@ -101,11 +101,11 @@ pub fn dodge_pew_action_system(
 
                     if let Ok((mut walker, _)) = walkers.get_mut(*actor) {
                         walker.direction = match walker.direction {
-                            crab_move::Direction::NorthWest => crab_move::Direction::NorthEast,
-                            crab_move::Direction::NorthEast => crab_move::Direction::NorthWest,
-                            crab_move::Direction::SouthEast => crab_move::Direction::SouthWest,
-                            crab_move::Direction::SouthWest => crab_move::Direction::NorthEast,
-                            _ => crab_move::Direction::NorthEast,
+                            crab_move::CrabMoveDirection::NorthWest => CrabMoveDirection::NorthEast,
+                            CrabMoveDirection::NorthEast => CrabMoveDirection::NorthWest,
+                            CrabMoveDirection::SouthEast => CrabMoveDirection::SouthWest,
+                            CrabMoveDirection::SouthWest => CrabMoveDirection::NorthEast,
+                            _ => CrabMoveDirection::NorthEast,
                         }
                     }
                 }

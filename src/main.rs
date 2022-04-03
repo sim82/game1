@@ -7,7 +7,7 @@ use big_brain::BigBrainPlugin;
 use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin},
     movement::{
-        crab_move::{self, CrabMoveWalker},
+        crab_move::{CrabMoveDirection, CrabMoveWalker},
         walk::VelocityWalker,
         MovementPlugin,
     },
@@ -193,19 +193,19 @@ fn apply_input(
     keyboard_input: Res<Input<KeyCode>>,
 ) {
     for (mut walk_velocity, transform) in query.iter_mut() {
-        walk_velocity.direction = crab_move::Direction::None;
+        walk_velocity.direction = CrabMoveDirection::None;
         if keyboard_input.pressed(KeyCode::A) && keyboard_input.pressed(KeyCode::W) {
-            walk_velocity.direction = crab_move::Direction::NorthWest;
+            walk_velocity.direction = CrabMoveDirection::NorthWest;
         } else if keyboard_input.pressed(KeyCode::A) && keyboard_input.pressed(KeyCode::S) {
-            walk_velocity.direction = crab_move::Direction::SouthWest;
+            walk_velocity.direction = CrabMoveDirection::SouthWest;
         } else if keyboard_input.pressed(KeyCode::A) {
-            walk_velocity.direction = crab_move::Direction::West;
+            walk_velocity.direction = CrabMoveDirection::West;
         } else if keyboard_input.pressed(KeyCode::D) && keyboard_input.pressed(KeyCode::W) {
-            walk_velocity.direction = crab_move::Direction::NorthEast;
+            walk_velocity.direction = CrabMoveDirection::NorthEast;
         } else if keyboard_input.pressed(KeyCode::D) && keyboard_input.pressed(KeyCode::S) {
-            walk_velocity.direction = crab_move::Direction::SouthEast;
+            walk_velocity.direction = CrabMoveDirection::SouthEast;
         } else if keyboard_input.pressed(KeyCode::D) {
-            walk_velocity.direction = crab_move::Direction::East;
+            walk_velocity.direction = CrabMoveDirection::East;
         }
         if keyboard_input.just_pressed(KeyCode::J) {
             commands

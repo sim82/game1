@@ -2,21 +2,21 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 
 use crate::movement::{
-    crab_move::{self, CrabMoveWalker},
+    crab_move::{CrabMoveDirection, CrabMoveWalker},
     walk::VelocityWalker,
 };
 
 #[derive(Component, Debug, Clone)]
 pub struct JiggleAround {
     left: f32,
-    dir: crab_move::Direction,
+    dir: CrabMoveDirection,
 }
 
 impl Default for JiggleAround {
     fn default() -> Self {
         Self {
             left: 0.0,
-            dir: crab_move::Direction::None,
+            dir: CrabMoveDirection::None,
         }
     }
 }
@@ -33,10 +33,10 @@ pub fn jiggle_around_action_system(
                 jiggle_around.left -= time.delta_seconds();
                 if jiggle_around.left <= 0.0 {
                     jiggle_around.left = 0.3;
-                    jiggle_around.dir = if jiggle_around.dir == crab_move::Direction::East {
-                        crab_move::Direction::West
+                    jiggle_around.dir = if jiggle_around.dir == CrabMoveDirection::East {
+                        CrabMoveDirection::West
                     } else {
-                        crab_move::Direction::East
+                        CrabMoveDirection::East
                     };
                     if let Ok(mut walker) = walkers.get_mut(*actor) {
                         walker.direction = jiggle_around.dir;

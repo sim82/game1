@@ -5,7 +5,7 @@ use bevy_aseprite::AsepriteAnimation;
 use super::zap::BeingZapped;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Direction {
+pub enum CrabMoveDirection {
     None,
     West,
     NorthWest,
@@ -14,28 +14,59 @@ pub enum Direction {
     SouthEast,
     SouthWest,
 }
-impl Default for Direction {
+impl Default for CrabMoveDirection {
     fn default() -> Self {
-        Direction::None
+        CrabMoveDirection::None
     }
 }
 
 #[derive(Component, Default)]
 // #[reflect(Component)]
 pub struct CrabMoveWalker {
-    pub direction: Direction,
+    pub direction: CrabMoveDirection,
 }
 
-impl Direction {
+const HEX_DIAG_X: f32 = 0.5;
+const HEX_DIAG_Y: f32 = 0.866; // sqrt(3) / 2 or sin(60)
+
+impl CrabMoveDirection {
     pub fn to_vec3(self) -> Vec3 {
+        // 'diagonal' directions on hex grid
+
         match self {
-            Direction::None => Vec3::ZERO,
-            Direction::West => Vec3::new(-1.0, 0.0, 0.0),
-            Direction::NorthWest => Vec3::new(-1.0, 1.0, 0.0),
-            Direction::NorthEast => Vec3::new(1.0, 1.0, 0.0),
-            Direction::East => Vec3::new(1.0, 0.0, 0.0),
-            Direction::SouthEast => Vec3::new(1.0, -1.0, 0.0),
-            Direction::SouthWest => Vec3::new(-1.0, -1.0, 0.0),
+            // CrabMoveDirection::None => Vec3::ZERO,
+            // CrabMoveDirection::West => Vec3::new(-1.0, 0.0, 0.0),
+            // CrabMoveDirection::NorthWest => Vec3::new(-1.0, 1.0, 0.0),
+            // CrabMoveDirection::NorthEast => Vec3::new(1.0, 1.0, 0.0),
+            // CrabMoveDirection::East => Vec3::new(1.0, 0.0, 0.0),
+            // CrabMoveDirection::SouthEast => Vec3::new(1.0, -1.0, 0.0),
+            // CrabMoveDirection::SouthWest => Vec3::new(-1.0, -1.0, 0.0),
+            CrabMoveDirection::None => Vec3::ZERO,
+            CrabMoveDirection::West => Vec3::new(-1.0, 0.0, 0.0),
+            CrabMoveDirection::NorthWest => Vec3::new(-HEX_DIAG_X, HEX_DIAG_Y, 0.0),
+            CrabMoveDirection::NorthEast => Vec3::new(HEX_DIAG_X, HEX_DIAG_Y, 0.0),
+            CrabMoveDirection::East => Vec3::new(1.0, 0.0, 0.0),
+            CrabMoveDirection::SouthEast => Vec3::new(HEX_DIAG_X, -HEX_DIAG_Y, 0.0),
+            CrabMoveDirection::SouthWest => Vec3::new(-HEX_DIAG_X, -HEX_DIAG_Y, 0.0),
+        }
+    }
+    pub fn find_nearest(dir: Vec3) -> Self {
+        fn to_positive_degrees(dir: Vec3) -> u32 {
+            let deg = f32::atan2(dir.y, dir.x).to_degrees() as i32;
+            if deg >= 0 {
+                deg as u32
+            } else {
+                (360 + deg) as u32
+            }
+        }
+        match to_positive_degrees(dir) {
+            0..30 | 330..360 => CrabMoveDirection::East,
+            30..90 => CrabMoveDirection::NorthEast,
+            90..150 => CrabMoveDirection::NorthWest,
+            150..210 => CrabMoveDirection::West,
+            210..270 => CrabMoveDirection::SouthWest,
+            270..330 => CrabMoveDirection::SouthEast,
+            _ => CrabMoveDirection::None,
         }
     }
 }

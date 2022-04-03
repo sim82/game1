@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{ai::util::TargetDistanceProbe, movement::walk::VelocityWalker, TargetFlag};
+use crate::{
+    ai::util::TargetDistanceProbe,
+    movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
+    TargetFlag,
+};
 
 #[derive(Clone, Component, Debug)]
 pub struct Follow {
@@ -9,7 +13,7 @@ pub struct Follow {
 }
 
 pub fn follow_action_system(
-    mut walkers: Query<(&Transform, &TargetDistanceProbe, &mut VelocityWalker)>,
+    mut walkers: Query<(&Transform, &TargetDistanceProbe, &mut CrabMoveWalker)>,
     target_query: Query<&Transform, With<TargetFlag>>,
     // We execute actions by querying for their associated Action Component
     // (Drink in this case). You'll always need both Actor and ActionState.
@@ -35,10 +39,11 @@ pub fn follow_action_system(
                 ActionState::Executing => {
                     if target_distance.d >= go_to_target.until {
                         let tv = (target_pos - transform.translation).normalize();
-                        walker.velocity = 1.0 * tv;
+                        walker.direction = CrabMoveDirection::find_nearest(tv);
+                        // walker.velocity = 1.0 * tv;
                         // info!("walk_velocity: {:?}", walker.velocity);
                     } else {
-                        walker.velocity = Vec3::ZERO;
+                        walker.direction = CrabMoveDirection::None;
                         // *state = ActionState::Success;
                     }
                 }
