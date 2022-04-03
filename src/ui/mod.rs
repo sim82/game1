@@ -44,20 +44,19 @@ fn add_tracking_overlays(
 }
 
 fn update_tracking_overlays(
+    windows: ResMut<Windows>,
     mut overlays_query: Query<(&Link, &mut Style)>,
     target_query: Query<&GlobalTransform, Without<Link>>,
 ) {
+    let (x_offs, y_offs) = if let Some(window) = windows.get_primary() {
+        (window.width() / 2.0, window.height() / 2.0)
+    } else {
+        (600.0, 400.0)
+    };
     for (Link(link_entity), mut overlay_style) in overlays_query.iter_mut() {
         if let Ok(target_transform) = target_query.get(*link_entity) {
-            info!("transform: {:?}", target_transform);
-            // overlay_transform.translation = target_transform.translation;
-            // overlay_style.position.(
-            //     target_transform.translation.x,
-            //     target_transform.translation.y,
-            // )
-
-            overlay_style.position.left = Val::Px(target_transform.translation.x + 600.0);
-            overlay_style.position.bottom = Val::Px(target_transform.translation.y + 400.0);
+            overlay_style.position.left = Val::Px(target_transform.translation.x + x_offs - 32.0);
+            overlay_style.position.bottom = Val::Px(target_transform.translation.y + y_offs + 32.0);
         }
     }
 }
