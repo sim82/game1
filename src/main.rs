@@ -7,8 +7,9 @@ use big_brain::BigBrainPlugin;
 use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin},
     movement::{
-        crab_move::{self, CrabMovePlugin, CrabMoveWalker},
-        walk::{VelocityWalker, WalkPlugin},
+        crab_move::{self, CrabMoveWalker},
+        walk::VelocityWalker,
+        MovementPlugin,
     },
     path::{PathPlugin, Waypoint},
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
@@ -35,8 +36,7 @@ fn main() {
         // internal plugins
         //
         .add_plugin(PointerPlugin)
-        .add_plugin(WalkPlugin)
-        .add_plugin(CrabMovePlugin)
+        .add_plugin(MovementPlugin)
         .add_plugin(AiPlugin)
         .add_plugin(PathPlugin)
         .add_plugin(AiDiagnosticsPlugin)

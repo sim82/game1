@@ -1,12 +1,20 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{movement::walk::VelocityWalker, Pew};
+use crate::{
+    movement::crab_move::{self, CrabMoveWalker},
+    Pew,
+};
 use rand::Rng;
 
 #[derive(Component, Debug, Clone)]
 pub struct DodgePew {
-    direction: f32,
+    // direction: f32,
+    time_left_before_change: f32,
+}
+
+mod tune {
+    pub const CHANGE_DIRECTION_TIMEOUT: f32 = 0.5;
 }
 
 impl DodgePew {
@@ -24,7 +32,9 @@ pub struct DodgePewBuilder;
 
 impl ActionBuilder for DodgePewBuilder {
     fn build(&self, cmd: &mut Commands, scorer: Entity, _actor: Entity) {
-        cmd.entity(scorer).insert(DodgePew { direction: 0.0 });
+        cmd.entity(scorer).insert(DodgePew {
+            time_left_before_change: 0.0,
+        });
     }
 }
 
@@ -35,7 +45,7 @@ impl ActionBuilder for DodgePewBuilder {
 // }
 
 pub fn dodge_pew_action_system(
-    mut walkers: Query<(&mut VelocityWalker, &Transform)>,
+    mut walkers: Query<(&mut CrabMoveWalker, &Transform)>,
     time: Res<Time>,
     mut query: Query<(&Actor, &mut ActionState, &mut DodgePew)>,
     pew_query: Query<(&Transform, &Pew)>,
@@ -66,17 +76,42 @@ pub fn dodge_pew_action_system(
 
                 // more funny: just panic and run in random direction
                 let mut rng = rand::thread_rng();
-                if rng.gen_bool(0.5) {
-                    dodge_pew.direction = 1.0;
-                } else {
-                    dodge_pew.direction = -1.0;
+                // if rng.gen_bool(0.5) {
+                //     dodge_pew.direction = 1.0;
+                // } else {
+                //     dodge_pew.direction = -1.0;
+                // }
+                let choices = [
+                    crab_move::Direction::NorthEast,
+                    crab_move::Direction::NorthWest,
+                    crab_move::Direction::SouthEast,
+                    crab_move::Direction::SouthWest,
+                ];
+                if let Ok((mut walker, _)) = walkers.get_mut(*actor) {
+                    walker.direction = choices[rng.gen_range(0..choices.len())];
                 }
+                dodge_pew.time_left_before_change = tune::CHANGE_DIRECTION_TIMEOUT;
                 *state = ActionState::Executing;
             }
             ActionState::Executing => {
-                if let Ok((mut walker, _)) = walkers.get_mut(*actor) {
-                    walker.velocity = Vec3::new(0.0, dodge_pew.direction, 0.0);
+                dodge_pew.time_left_before_change -= time.delta_seconds();
+
+                if dodge_pew.time_left_before_change <= 0.0 {
+                    dodge_pew.time_left_before_change = tune::CHANGE_DIRECTION_TIMEOUT;
+
+                    if let Ok((mut walker, _)) = walkers.get_mut(*actor) {
+                        walker.direction = match walker.direction {
+                            crab_move::Direction::NorthWest => crab_move::Direction::NorthEast,
+                            crab_move::Direction::NorthEast => crab_move::Direction::NorthWest,
+                            crab_move::Direction::SouthEast => crab_move::Direction::SouthWest,
+                            crab_move::Direction::SouthWest => crab_move::Direction::NorthEast,
+                            _ => crab_move::Direction::NorthEast,
+                        }
+                    }
                 }
+                // if let Ok((mut walker, _)) = walkers.get_mut(*actor) {
+                //     walker.velocity = Vec3::new(0.0, dodge_pew.direction, 0.0);
+                // }
             }
             ActionState::Cancelled => *state = ActionState::Failure,
             _ => {}

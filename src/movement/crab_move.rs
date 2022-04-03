@@ -2,7 +2,9 @@ use crate::{pointer::MouseGrabState, sprites, tune};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteAnimation;
 
-#[derive(Debug, Clone, Copy)]
+use super::zap::BeingZapped;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     None,
     West,
@@ -38,7 +40,7 @@ impl Direction {
     }
 }
 
-fn apply_velocity(
+pub fn apply_velocity_system(
     time: Res<Time>,
     mut query: Query<(
         Entity,
@@ -46,6 +48,7 @@ fn apply_velocity(
         &mut AsepriteAnimation,
         &CrabMoveWalker,
     )>,
+    zapped_query: Query<Entity, With<BeingZapped>>,
     grab_state: ResMut<MouseGrabState>,
 ) {
     if !grab_state.shall_grab {
@@ -53,6 +56,13 @@ fn apply_velocity(
     }
 
     for (entity, mut transform, mut animation, walk_velocity) in query.iter_mut() {
+        if zapped_query.get(entity).is_ok() {
+            if !animation.is_tag(sprites::Ferris::tags::ZAP) {
+                *animation = AsepriteAnimation::from(sprites::Ferris::tags::ZAP)
+            }
+            continue;
+        }
+
         let velocity = walk_velocity.direction.to_vec3();
         let speed = velocity.length();
 
@@ -76,13 +86,5 @@ fn apply_velocity(
         } else if !animation.is_tag(sprites::Ferris::tags::STAND) {
             *animation = AsepriteAnimation::from(sprites::Ferris::tags::STAND);
         }
-    }
-}
-
-pub struct CrabMovePlugin;
-
-impl Plugin for CrabMovePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_system(apply_velocity);
     }
 }

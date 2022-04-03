@@ -11,7 +11,7 @@ use crate::{
         scorers::{curiosity::Curiousity, fear::Fear, pew_incoming::PewIncoming},
         util::TargetDistanceProbe,
     },
-    movement::walk::VelocityWalker,
+    movement::{crab_move::CrabMoveWalker, walk::VelocityWalker, zap::Zappable},
     sprites,
     ui::TrackingOverlayTarget,
 };
@@ -41,9 +41,11 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
             },
             ..Default::default()
         })
-        .insert(VelocityWalker {
-            velocity: Vec3::ZERO,
-        })
+        // .insert(VelocityWalker {
+        //     velocity: Vec3::ZERO,
+        // })
+        .insert(Zappable)
+        .insert(CrabMoveWalker::default())
         .insert(TargetDistanceProbe { d: 0.0 })
         .insert(
             Thinker::build()
@@ -53,8 +55,8 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 // Technically these are supposed to be ActionBuilders and
                 // ScorerBuilders, but our Clone impls simplify our code here.
                 .when(PewIncoming::build(), DodgePew::build())
-                .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
-                .when(Curiousity::build().within(tune::CURIOSITY_DISTANCE), Follow { until: tune::FOLLOW_MIN_DISTANCE })
+                // .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
+                // .when(Curiousity::build().within(tune::CURIOSITY_DISTANCE), Follow { until: tune::FOLLOW_MIN_DISTANCE })
                 .otherwise(JiggleAround::default()),
         )
         // .insert(TrackingOverlayTarget {

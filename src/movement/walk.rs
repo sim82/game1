@@ -2,55 +2,15 @@ use crate::{pointer::MouseGrabState, sprites, tune, Pew};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteAnimation;
 
+use super::zap::BeingZapped;
+
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct VelocityWalker {
     pub velocity: Vec3,
 }
 
-#[derive(Component)]
-#[component(storage = "SparseSet")]
-pub struct BeingZapped;
-
-#[allow(clippy::type_complexity)]
-fn check_pew_intersection_system(
-    mut commands: Commands,
-    query_non_zapped: Query<
-        (Entity, &mut Transform),
-        (With<VelocityWalker>, Without<BeingZapped>, Without<Pew>),
-    >,
-    query_zapped: Query<
-        (Entity, &mut Transform),
-        (With<VelocityWalker>, With<BeingZapped>, Without<Pew>),
-    >,
-    query_pew: Query<&Transform, With<Pew>>,
-) {
-    let pew_pos = query_pew
-        .iter()
-        .map(|transform| transform.translation)
-        .collect::<Vec<_>>();
-
-    const ZAP_DIST: f32 = tune::PEW_ZAP_DISTANCE;
-
-    for (entity, Transform { translation, .. }) in query_non_zapped.iter() {
-        if pew_pos
-            .iter()
-            .any(|pew| (*pew - *translation).length() < ZAP_DIST)
-        {
-            commands.entity(entity).insert(BeingZapped);
-        }
-    }
-    for (entity, Transform { translation, .. }) in query_zapped.iter() {
-        if !pew_pos
-            .iter()
-            .any(|pew| (*pew - *translation).length() < ZAP_DIST)
-        {
-            commands.entity(entity).remove::<BeingZapped>();
-        }
-    }
-}
-
-fn apply_velocity_system(
+pub fn apply_velocity_system(
     time: Res<Time>,
     mut query: Query<(
         Entity,
@@ -58,7 +18,7 @@ fn apply_velocity_system(
         &mut AsepriteAnimation,
         &VelocityWalker,
     )>,
-    mut zapped_query: Query<Entity, With<BeingZapped>>,
+    zapped_query: Query<Entity, With<BeingZapped>>,
     grab_state: ResMut<MouseGrabState>,
 ) {
     if !grab_state.shall_grab {
@@ -95,14 +55,5 @@ fn apply_velocity_system(
         } else if !animation.is_tag(sprites::Ferris::tags::STAND) {
             *animation = AsepriteAnimation::from(sprites::Ferris::tags::STAND);
         }
-    }
-}
-
-pub struct WalkPlugin;
-
-impl Plugin for WalkPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_system(check_pew_intersection_system)
-            .add_system(apply_velocity_system);
     }
 }
