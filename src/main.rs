@@ -21,47 +21,53 @@ use game1::{
 use rand::{thread_rng, Rng};
 
 fn main() {
-    App::new()
-        //
-        // external plugins
-        //
-        .add_plugins(DefaultPlugins)
+    let mut app = App::new();
+
+    //
+    // external plugins
+    //
+    app.add_plugins(DefaultPlugins)
         .add_plugin(DiagnosticsPlugin)
         .add_plugin(TilemapPlugin)
         .add_plugin(AsepritePlugin)
         .add_plugin(BigBrainPlugin)
-        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
-        .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::default())
-        //
-        // internal plugins
-        //
-        .add_plugin(PointerPlugin)
+        .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::default());
+    //
+    // internal plugins
+    //
+    app.add_plugin(PointerPlugin)
         .add_plugin(MovementPlugin)
         .add_plugin(AiPlugin)
         .add_plugin(PathPlugin)
         .add_plugin(AiDiagnosticsPlugin)
         .add_plugin(IngameUiPlugin)
-        .add_plugin(PlayfieldPlugin)
-        //
-        // startup systems
-        //
-        .add_startup_system(setup)
-        //
-        // systems (mostly: TODO move to plugins)
-        //
-        .add_system(setup_camera)
+        .add_plugin(PlayfieldPlugin);
+    //
+    // startup systems
+    //
+    app.add_startup_system(setup);
+
+    //
+    // systems (mostly: TODO move to plugins)
+    //
+    app.add_system(setup_camera)
         .add_system(walk_to_target)
         .add_system(apply_input)
         .add_system(exit_on_esc_system)
         .add_system(spawn_waypoint_on_click)
         .add_system(game1::pew_move_system)
-        .add_system(game1::time_to_live_reaper_system)
-        //
-        // type registrations
-        //
-        .register_type::<VelocityWalker>()
-        .run();
-    println!("Hello, world!");
+        .add_system(game1::time_to_live_reaper_system);
+    //
+    // type registrations
+    //
+    app.register_type::<VelocityWalker>();
+
+    #[cfg(feature = "inspector")]
+    {
+        app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
+    }
+
+    app.run();
 }
 
 pub fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
