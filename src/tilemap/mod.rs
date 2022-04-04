@@ -2,6 +2,8 @@ use bevy::{prelude::*, render::render_resource::TextureUsages};
 use bevy_ecs_tilemap::prelude::*;
 use rand::{thread_rng, Rng};
 
+use crate::pointer::ClickEvent;
+
 // mod helpers;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
@@ -112,11 +114,25 @@ pub fn set_texture_filters_to_nearest(
     }
 }
 
+pub fn background_on_click(
+    mut commands: Commands,
+    mut click_events: EventReader<ClickEvent>,
+    mut map_query: MapQuery,
+) {
+    for event in click_events.iter() {
+        let zidx = map_query.get_zindex_for_pixel_pos(event.pos, 0u16, 0u16);
+        info!("clicked: {:?} {}", event, zidx);
+
+        // map_query.
+    }
+}
+
 pub struct PlayfieldPlugin;
 
 impl Plugin for PlayfieldPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(startup)
+            .add_system(background_on_click)
             .add_system(set_texture_filters_to_nearest);
     }
 }

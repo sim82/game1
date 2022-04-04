@@ -35,6 +35,7 @@ pub struct PrimaryPointerPos {
     pub pos: Vec3,
 }
 
+#[derive(Debug)]
 pub struct ClickEvent {
     pub pos: Vec3,
 }

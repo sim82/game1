@@ -69,6 +69,18 @@ impl CrabMoveDirection {
             _ => CrabMoveDirection::None,
         }
     }
+    pub fn is_none(&self) -> bool {
+        *self == CrabMoveDirection::None
+    }
+    pub fn is_any(&self) -> bool {
+        !self.is_none()
+    }
+    pub fn is_right(&self) -> bool {
+        matches!(
+            self,
+            CrabMoveDirection::East | CrabMoveDirection::NorthEast | CrabMoveDirection::SouthEast
+        )
+    }
 }
 
 pub fn apply_velocity_system(

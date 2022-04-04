@@ -54,11 +54,12 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 })
                 .when(PewIncoming::build(), DodgePew::build())
                 .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
-                .when(Curiousity::build().within(tune::CURIOSITY_DISTANCE), Follow { until: tune::FOLLOW_MIN_DISTANCE })
+                .when(
+                    Curiousity::build().within(tune::CURIOSITY_DISTANCE),
+                    Follow {
+                        until: tune::FOLLOW_MIN_DISTANCE,
+                    },
+                )
                 .otherwise(JiggleAround::default()),
-        )
-        // .insert(TrackingOverlayTarget {
-        //     text: "meeeeeep".into(),
-        // })
-        ;
+        );
 }

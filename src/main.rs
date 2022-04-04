@@ -15,7 +15,7 @@ use game1::{
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
     sprites,
     tilemap::PlayfieldPlugin,
-    ui::IngameUiPlugin,
+    ui::{IngameUiPlugin, TrackingOverlayTarget},
     Pew, TargetFlag, TimeToLive,
 };
 use rand::{thread_rng, Rng};
@@ -38,10 +38,12 @@ fn main() {
     app.add_plugin(PointerPlugin)
         .add_plugin(MovementPlugin)
         .add_plugin(AiPlugin)
-        .add_plugin(PathPlugin)
+        // .add_plugin(PathPlugin)
         .add_plugin(AiDiagnosticsPlugin)
         .add_plugin(IngameUiPlugin)
-        .add_plugin(PlayfieldPlugin);
+        // .add_plugin(PlayfieldPlugin)
+        //
+        ;
     //
     // startup systems
     //
@@ -140,7 +142,10 @@ pub fn setup(mut commands: Commands) {
         })
         .insert(InputTarget)
         .insert(CrabMoveWalker::default())
-        .insert(TargetFlag);
+        .insert(TargetFlag)
+        .insert(TrackingOverlayTarget {
+            text: "meeeeeep".into(),
+        });
 
     commands
         .spawn_bundle(AsepriteBundle {
@@ -157,8 +162,13 @@ pub fn setup(mut commands: Commands) {
         .insert(MousePointerFlag);
 }
 
-fn setup_camera(mut query: Query<(&mut Transform, &mut OrthographicProjection), Added<Camera>>) {
-    for (mut transform, _projection) in query.iter_mut() {
+fn setup_camera(
+    mut query: Query<(&mut Transform, &mut OrthographicProjection, &Camera), Added<Camera>>,
+) {
+    for (mut transform, _projection, camera) in query.iter_mut() {
+        if camera.name != Some("camera_2d".into()) {
+            continue;
+        }
         // let z = transform.translation.z;
         transform.translation.x = 600.0 / 4.0;
         transform.translation.y = 400.0 / 4.0;
@@ -213,7 +223,8 @@ fn apply_input(
         } else if keyboard_input.pressed(KeyCode::D) {
             walk_velocity.direction = CrabMoveDirection::East;
         }
-        if keyboard_input.just_pressed(KeyCode::J) {
+
+        if keyboard_input.just_pressed(KeyCode::J) && walk_velocity.direction.is_any() {
             commands
                 .spawn_bundle(AsepriteBundle {
                     aseprite: sprites::Pew::sprite(),
@@ -226,24 +237,25 @@ fn apply_input(
 
                     ..Default::default()
                 })
-                .insert(Pew(false))
-                .insert(TimeToLive(10.0));
-        } else if keyboard_input.just_pressed(KeyCode::K) {
-            commands
-                .spawn_bundle(AsepriteBundle {
-                    aseprite: sprites::Pew::sprite(),
-                    animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
-                    transform: Transform {
-                        scale: Vec3::splat(1.),
-                        translation: transform.translation,
-                        ..Default::default()
-                    },
-
-                    ..Default::default()
-                })
-                .insert(Pew(true))
+                .insert(Pew(walk_velocity.direction.is_right()))
                 .insert(TimeToLive(10.0));
         }
+        // else if keyboard_input.just_pressed(KeyCode::K) {
+        //     commands
+        //         .spawn_bundle(AsepriteBundle {
+        //             aseprite: sprites::Pew::sprite(),
+        //             animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
+        //             transform: Transform {
+        //                 scale: Vec3::splat(1.),
+        //                 translation: transform.translation,
+        //                 ..Default::default()
+        //             },
+
+        //             ..Default::default()
+        //         })
+        //         .insert(Pew(true))
+        //         .insert(TimeToLive(10.0));
+        // }
     }
 }
 

@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::camera::CameraProjection};
 
 #[derive(Component)]
 pub struct TrackingOverlayTarget {
@@ -47,16 +47,41 @@ fn update_tracking_overlays(
     windows: ResMut<Windows>,
     mut overlays_query: Query<(&Link, &mut Style)>,
     target_query: Query<&GlobalTransform, Without<Link>>,
+    ortho_cam_query: Query<(&GlobalTransform, &Camera), With<Camera>>,
 ) {
-    let (x_offs, y_offs) = if let Some(window) = windows.get_primary() {
-        (window.width() / 2.0, window.height() / 2.0)
-    } else {
-        (600.0, 400.0)
-    };
+    let mut mat_2d = None;
+    let mut mat_ui = None;
+
+    // get projection and transformation of both 2d and ui cameras
+    for (transform, camera) in ortho_cam_query.iter() {
+        let mat = camera.projection_matrix * transform.compute_matrix().inverse();
+        match camera.name.as_deref() {
+            Some("camera_2d") => mat_2d = Some(mat),
+            Some("camera_ui") => mat_ui = Some(mat),
+            _ => (),
+        }
+    }
+
     for (Link(link_entity), mut overlay_style) in overlays_query.iter_mut() {
-        if let Ok(target_transform) = target_query.get(*link_entity) {
-            overlay_style.position.left = Val::Px(target_transform.translation.x + x_offs - 32.0);
-            overlay_style.position.bottom = Val::Px(target_transform.translation.y + y_offs + 32.0);
+        if let (Ok(target_transform), Some(mat_2d), Some(mat_ui)) =
+            (target_query.get(*link_entity), &mat_2d, &mat_ui)
+        {
+            // project overlay target position from 2d camera world space to screenspace
+            let screen_coord = *mat_2d * target_transform.translation.extend(1.0);
+
+            // project screen space coordinate back to world space of UI camera
+            let mat_ui_inv = mat_ui.inverse();
+            debug!(
+                "proj {:?} -> {:?} -> {:?}",
+                target_transform.translation,
+                screen_coord,
+                mat_ui_inv * screen_coord
+            );
+            let ui_coord = mat_ui_inv * screen_coord;
+
+            // this can directly be used for overlay ui element (+/- some offsets). neat
+            overlay_style.position.left = Val::Px(ui_coord.x - 16.0);
+            overlay_style.position.bottom = Val::Px(ui_coord.y + 24.0);
         }
     }
 }
