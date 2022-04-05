@@ -1,5 +1,9 @@
 use bevy::{prelude::*, render::camera::CameraProjection};
 
+use self::dom::{Div, Element};
+
+pub mod dom;
+
 #[derive(Component)]
 pub struct TrackingOverlayTarget {
     pub text: String,
@@ -14,32 +18,56 @@ fn add_tracking_overlays(
     query: Query<Entity, Added<TrackingOverlayTarget>>,
 ) {
     for entity in query.iter() {
-        let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+        // let font = asset_server.load("fonts/FiraSans-Bold.ttf");
 
-        commands
-            .spawn_bundle(TextBundle {
-                style: Style {
-                    align_self: AlignSelf::FlexEnd,
-                    position_type: PositionType::Absolute,
-                    position: Rect {
-                        top: Val::Px(5.0),
-                        left: Val::Px(15.0),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-                text: Text::with_section(
-                    "Some text",
-                    TextStyle {
-                        font: font.clone(),
-                        font_size: 16.0,
-                        color: Color::WHITE,
-                    },
-                    Default::default(),
-                ),
-                ..Default::default()
-            })
-            .insert(Link(entity));
+        let div = Element::Div(Div {
+            class: "outer_class".into(),
+            content: vec![
+                Element::Div(Div {
+                    class: "inner_class".into(),
+                    content: vec![Element::Text("upper".into())],
+                }),
+                Element::Text("bla".into()),
+                Element::Div(Div {
+                    class: "inner_class".into(),
+                    content: vec![Element::Text("lower".into())],
+                }),
+            ],
+        });
+
+        let commands = commands.spawn();
+        dom::spawn_element(
+            &div,
+            commands,
+            &*asset_server,
+            &dom::get_stylesheet(),
+            Some(entity),
+        );
+
+        // commands
+        //     .spawn_bundle(TextBundle {
+        //         style: Style {
+        //             align_self: AlignSelf::FlexEnd,
+        //             position_type: PositionType::Absolute,
+        //             position: Rect {
+        //                 top: Val::Px(5.0),
+        //                 left: Val::Px(15.0),
+        //                 ..Default::default()
+        //             },
+        //             ..Default::default()
+        //         },
+        //         text: Text::with_section(
+        //             "Some text",
+        //             TextStyle {
+        //                 font: font.clone(),
+        //                 font_size: 16.0,
+        //                 color: Color::WHITE,
+        //             },
+        //             Default::default(),
+        //         ),
+        //         ..Default::default()
+        //     })
+        //     .insert(Link(entity));
     }
 }
 
