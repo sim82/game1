@@ -8,6 +8,7 @@ use bevy::{
     },
     prelude::*,
 };
+use game1::ui::dom::{get_stylesheet, spawn_element, Div, Element, MyStyle};
 
 /// This example illustrates the various features of Bevy UI.
 fn main() {
@@ -19,400 +20,41 @@ fn main() {
         .run();
 }
 
-#[derive(Clone)]
-enum Content {
-    Div(Div),
-    Text(String),
-}
-
-#[derive(Clone)]
-struct Div {
-    content: Vec<Content>,
-    class: String,
-}
-
-struct MyStyle {
-    color: Color,
-    style: Style,
-}
-
-fn spawn(
-    content: &Content,
-    mut commands: EntityCommands,
-    asset_server: &AssetServer,
-    styles: &HashMap<String, MyStyle>,
-) {
-    match content {
-        Content::Text(content) => {
-            commands.insert_bundle(TextBundle {
-                style: Style {
-                    flex_shrink: 0.,
-                    size: Size::new(Val::Undefined, Val::Px(20.)),
-                    margin: Rect {
-                        left: Val::Auto,
-                        right: Val::Auto,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-                text: Text::with_section(
-                    content.clone(),
-                    TextStyle {
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                        font_size: 20.,
-                        color: Color::WHITE,
-                    },
-                    Default::default(),
-                ),
-                ..Default::default()
-            });
-        }
-        Content::Div(div) => {
-            let my_style = styles.get(&div.class).unwrap();
-            commands.insert_bundle(NodeBundle {
-                style: my_style.style.clone(),
-                color: my_style.color.into(),
-                ..Default::default()
-            });
-            commands.with_children(|child_builder| {
-                for content in div.content.iter() {
-                    spawn(content, child_builder.spawn(), asset_server, styles);
-                }
-            });
-        }
-    }
-}
-
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ui camera
     commands.spawn_bundle(UiCameraBundle::default());
 
-    let div = Content::Div(Div {
+    let div = Element::Div(Div {
         class: "outer_class".into(),
         content: vec![
-            Content::Div(Div {
-                class: "inner_class".into(),
-                content: vec![Content::Text("upper".into())],
+            Element::Div(Div {
+                class: "inner_row_class".into(),
+                content: vec![
+                    Element::Div(Div {
+                        class: "inner_green_class".into(),
+                        content: vec![Element::Text("left".into())],
+                    }),
+                    Element::Div(Div {
+                        class: "inner_red_class".into(),
+                        content: vec![Element::Text("right".into())],
+                    }),
+                ],
             }),
-            Content::Text("bla".into()),
-            Content::Div(Div {
-                class: "inner_class".into(),
-                content: vec![Content::Text("lower".into())],
+            Element::Text("bla".into()),
+            Element::Div(Div {
+                class: "inner_red_class".into(),
+                content: vec![Element::Text("lower".into())],
             }),
         ],
     });
 
-    let mut colors = HashMap::<String, MyStyle>::new();
-    colors.insert(
-        "outer_class".into(),
-        MyStyle {
-            color: Color::BLUE,
-            style: Style {
-                flex_direction: FlexDirection::ColumnReverse,
-                align_self: AlignSelf::Center,
-                size: Size::new(Val::Percent(100.0), Val::Percent(50.0)),
-                overflow: Overflow::Hidden,
-                ..Default::default()
-            },
-        },
+    spawn_element(
+        &div,
+        commands.spawn(),
+        &*asset_server,
+        &get_stylesheet(),
+        None,
     );
-    colors.insert(
-        "inner_class".into(),
-        MyStyle {
-            color: Color::RED,
-            style: Style {
-                flex_direction: FlexDirection::ColumnReverse,
-                align_self: AlignSelf::Center,
-                size: Size::new(Val::Percent(50.0), Val::Auto),
-                overflow: Overflow::Hidden,
-                ..Default::default()
-            },
-        },
-    );
-    spawn(&div, commands.spawn(), &*asset_server, &colors);
-
-    // root node
-    // commands
-    //     .spawn_bundle(NodeBundle {
-    //         style: Style {
-    //             size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-    //             justify_content: JustifyContent::SpaceBetween,
-    //             ..Default::default()
-    //         },
-    //         color: Color::NONE.into(),
-    //         ..Default::default()
-    //     })
-    //     .with_children(|parent| {
-    //         // left vertical fill (border)
-    //         parent
-    //             .spawn_bundle(NodeBundle {
-    //                 style: Style {
-    //                     size: Size::new(Val::Px(200.0), Val::Percent(100.0)),
-    //                     border: Rect::all(Val::Px(2.0)),
-    //                     ..Default::default()
-    //                 },
-    //                 color: Color::rgb(0.65, 0.65, 0.65).into(),
-    //                 ..Default::default()
-    //             })
-    //             .with_children(|parent| {
-    //                 // left vertical fill (content)
-    //                 parent
-    //                     .spawn_bundle(NodeBundle {
-    //                         style: Style {
-    //                             size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-    //                             align_items: AlignItems::FlexEnd,
-    //                             ..Default::default()
-    //                         },
-    //                         color: Color::rgb(0.15, 0.15, 0.15).into(),
-    //                         ..Default::default()
-    //                     })
-    //                     .with_children(|parent| {
-    //                         // text
-    //                         parent.spawn_bundle(TextBundle {
-    //                             style: Style {
-    //                                 margin: Rect::all(Val::Px(5.0)),
-    //                                 ..Default::default()
-    //                             },
-    //                             text: Text::with_section(
-    //                                 "Text Example",
-    //                                 TextStyle {
-    //                                     font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-    //                                     font_size: 30.0,
-    //                                     color: Color::WHITE,
-    //                                 },
-    //                                 Default::default(),
-    //                             ),
-    //                             ..Default::default()
-    //                         });
-    //                     });
-    //             });
-    //         // right vertical fill
-    //         parent
-    //             .spawn_bundle(NodeBundle {
-    //                 style: Style {
-    //                     flex_direction: FlexDirection::ColumnReverse,
-    //                     justify_content: JustifyContent::Center,
-    //                     size: Size::new(Val::Px(200.0), Val::Percent(100.0)),
-    //                     ..Default::default()
-    //                 },
-    //                 color: Color::rgb(0.15, 0.15, 0.15).into(),
-    //                 ..Default::default()
-    //             })
-    //             .with_children(|parent| {
-    //                 // Title
-    //                 parent.spawn_bundle(TextBundle {
-    //                     style: Style {
-    //                         size: Size::new(Val::Undefined, Val::Px(25.)),
-    //                         margin: Rect {
-    //                             left: Val::Auto,
-    //                             right: Val::Auto,
-    //                             ..Default::default()
-    //                         },
-    //                         ..Default::default()
-    //                     },
-    //                     text: Text::with_section(
-    //                         "Scrolling list",
-    //                         TextStyle {
-    //                             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-    //                             font_size: 25.,
-    //                             color: Color::WHITE,
-    //                         },
-    //                         Default::default(),
-    //                     ),
-    //                     ..Default::default()
-    //                 });
-    //                 // List with hidden overflow
-    //                 parent
-    //                     .spawn_bundle(NodeBundle {
-    //                         style: Style {
-    //                             flex_direction: FlexDirection::ColumnReverse,
-    //                             align_self: AlignSelf::Center,
-    //                             size: Size::new(Val::Percent(100.0), Val::Percent(50.0)),
-    //                             overflow: Overflow::Hidden,
-    //                             ..Default::default()
-    //                         },
-    //                         color: Color::rgb(0.10, 0.10, 0.10).into(),
-    //                         ..Default::default()
-    //                     })
-    //                     .with_children(|parent| {
-    //                         // Moving panel
-    //                         parent
-    //                             .spawn_bundle(NodeBundle {
-    //                                 style: Style {
-    //                                     flex_direction: FlexDirection::ColumnReverse,
-    //                                     flex_grow: 1.0,
-    //                                     max_size: Size::new(Val::Undefined, Val::Undefined),
-    //                                     ..Default::default()
-    //                                 },
-    //                                 color: Color::NONE.into(),
-    //                                 ..Default::default()
-    //                             })
-    //                             .insert(ScrollingList::default())
-    //                             .with_children(|parent| {
-    //                                 // List items
-    //                                 for i in 0..30 {
-    //                                     parent.spawn_bundle(TextBundle {
-    //                                         style: Style {
-    //                                             flex_shrink: 0.,
-    //                                             size: Size::new(Val::Undefined, Val::Px(20.)),
-    //                                             margin: Rect {
-    //                                                 left: Val::Auto,
-    //                                                 right: Val::Auto,
-    //                                                 ..Default::default()
-    //                                             },
-    //                                             ..Default::default()
-    //                                         },
-    //                                         text: Text::with_section(
-    //                                             format!("Item {}", i),
-    //                                             TextStyle {
-    //                                                 font: asset_server
-    //                                                     .load("fonts/FiraSans-Bold.ttf"),
-    //                                                 font_size: 20.,
-    //                                                 color: Color::WHITE,
-    //                                             },
-    //                                             Default::default(),
-    //                                         ),
-    //                                         ..Default::default()
-    //                                     });
-    //                                 }
-    //                             });
-    //                     });
-    //             });
-    //         // absolute positioning
-    //         parent
-    //             .spawn_bundle(NodeBundle {
-    //                 style: Style {
-    //                     size: Size::new(Val::Px(200.0), Val::Px(200.0)),
-    //                     position_type: PositionType::Absolute,
-    //                     position: Rect {
-    //                         left: Val::Px(210.0),
-    //                         bottom: Val::Px(10.0),
-    //                         ..Default::default()
-    //                     },
-    //                     border: Rect::all(Val::Px(20.0)),
-    //                     ..Default::default()
-    //                 },
-    //                 color: Color::rgb(0.4, 0.4, 1.0).into(),
-    //                 ..Default::default()
-    //             })
-    //             .with_children(|parent| {
-    //                 parent.spawn_bundle(NodeBundle {
-    //                     style: Style {
-    //                         size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-    //                         ..Default::default()
-    //                     },
-    //                     color: Color::rgb(0.8, 0.8, 1.0).into(),
-    //                     ..Default::default()
-    //                 });
-    //             });
-    //         // render order test: reddest in the back, whitest in the front (flex center)
-    //         parent
-    //             .spawn_bundle(NodeBundle {
-    //                 style: Style {
-    //                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-    //                     position_type: PositionType::Absolute,
-    //                     align_items: AlignItems::Center,
-    //                     justify_content: JustifyContent::Center,
-    //                     ..Default::default()
-    //                 },
-    //                 color: Color::NONE.into(),
-    //                 ..Default::default()
-    //             })
-    //             .with_children(|parent| {
-    //                 parent
-    //                     .spawn_bundle(NodeBundle {
-    //                         style: Style {
-    //                             size: Size::new(Val::Px(100.0), Val::Px(100.0)),
-    //                             ..Default::default()
-    //                         },
-    //                         color: Color::rgb(1.0, 0.0, 0.0).into(),
-    //                         ..Default::default()
-    //                     })
-    //                     .with_children(|parent| {
-    //                         parent.spawn_bundle(NodeBundle {
-    //                             style: Style {
-    //                                 size: Size::new(Val::Px(100.0), Val::Px(100.0)),
-    //                                 position_type: PositionType::Absolute,
-    //                                 position: Rect {
-    //                                     left: Val::Px(20.0),
-    //                                     bottom: Val::Px(20.0),
-    //                                     ..Default::default()
-    //                                 },
-    //                                 ..Default::default()
-    //                             },
-    //                             color: Color::rgb(1.0, 0.3, 0.3).into(),
-    //                             ..Default::default()
-    //                         });
-    //                         parent.spawn_bundle(NodeBundle {
-    //                             style: Style {
-    //                                 size: Size::new(Val::Px(100.0), Val::Px(100.0)),
-    //                                 position_type: PositionType::Absolute,
-    //                                 position: Rect {
-    //                                     left: Val::Px(40.0),
-    //                                     bottom: Val::Px(40.0),
-    //                                     ..Default::default()
-    //                                 },
-    //                                 ..Default::default()
-    //                             },
-    //                             color: Color::rgb(1.0, 0.5, 0.5).into(),
-    //                             ..Default::default()
-    //                         });
-    //                         parent.spawn_bundle(NodeBundle {
-    //                             style: Style {
-    //                                 size: Size::new(Val::Px(100.0), Val::Px(100.0)),
-    //                                 position_type: PositionType::Absolute,
-    //                                 position: Rect {
-    //                                     left: Val::Px(60.0),
-    //                                     bottom: Val::Px(60.0),
-    //                                     ..Default::default()
-    //                                 },
-    //                                 ..Default::default()
-    //                             },
-    //                             color: Color::rgb(1.0, 0.7, 0.7).into(),
-    //                             ..Default::default()
-    //                         });
-    //                         // alpha test
-    //                         parent.spawn_bundle(NodeBundle {
-    //                             style: Style {
-    //                                 size: Size::new(Val::Px(100.0), Val::Px(100.0)),
-    //                                 position_type: PositionType::Absolute,
-    //                                 position: Rect {
-    //                                     left: Val::Px(80.0),
-    //                                     bottom: Val::Px(80.0),
-    //                                     ..Default::default()
-    //                                 },
-    //                                 ..Default::default()
-    //                             },
-    //                             color: Color::rgba(1.0, 0.9, 0.9, 0.4).into(),
-    //                             ..Default::default()
-    //                         });
-    //                     });
-    //             });
-    //         // bevy logo (flex center)
-    //         parent
-    //             .spawn_bundle(NodeBundle {
-    //                 style: Style {
-    //                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-    //                     position_type: PositionType::Absolute,
-    //                     justify_content: JustifyContent::Center,
-    //                     align_items: AlignItems::FlexEnd,
-    //                     ..Default::default()
-    //                 },
-    //                 color: Color::NONE.into(),
-    //                 ..Default::default()
-    //             })
-    //             .with_children(|parent| {
-    //                 // bevy logo (image)
-    //                 parent.spawn_bundle(ImageBundle {
-    //                     style: Style {
-    //                         size: Size::new(Val::Px(500.0), Val::Auto),
-    //                         ..Default::default()
-    //                     },
-    //                     // image: asset_server.load("branding/bevy_logo_dark_big.png").into(),
-    //                     ..Default::default()
-    //                 });
-    //             });
-    //     });
 }
 
 #[derive(Component, Default)]

@@ -24,12 +24,12 @@ fn add_tracking_overlays(
             class: "outer_class".into(),
             content: vec![
                 Element::Div(Div {
-                    class: "inner_class".into(),
+                    class: "inner_green_class".into(),
                     content: vec![Element::Text("upper".into())],
                 }),
                 Element::Text("bla".into()),
                 Element::Div(Div {
-                    class: "inner_class".into(),
+                    class: "inner_red_class".into(),
                     content: vec![Element::Text("lower".into())],
                 }),
             ],

@@ -35,11 +35,37 @@ pub fn get_stylesheet() -> HashMap<String, MyStyle> {
         },
     );
     colors.insert(
-        "inner_class".into(),
+        "inner_red_class".into(),
         MyStyle {
             color: Color::RED,
             style: Style {
                 flex_direction: FlexDirection::ColumnReverse,
+                align_self: AlignSelf::Center,
+                size: Size::new(Val::Percent(50.0), Val::Auto),
+                overflow: Overflow::Hidden,
+                ..Default::default()
+            },
+        },
+    );
+    colors.insert(
+        "inner_green_class".into(),
+        MyStyle {
+            color: Color::GREEN,
+            style: Style {
+                flex_direction: FlexDirection::ColumnReverse,
+                align_self: AlignSelf::Center,
+                size: Size::new(Val::Percent(50.0), Val::Auto),
+                overflow: Overflow::Hidden,
+                ..Default::default()
+            },
+        },
+    );
+    colors.insert(
+        "inner_row_class".into(),
+        MyStyle {
+            color: Color::GREEN,
+            style: Style {
+                flex_direction: FlexDirection::Row,
                 align_self: AlignSelf::Center,
                 size: Size::new(Val::Percent(50.0), Val::Auto),
                 overflow: Overflow::Hidden,
