@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
+use pathfinding::prelude::*;
 use petgraph::graphmap::UnGraphMap;
 
 use crate::{
@@ -82,7 +83,7 @@ struct WaypointPath {
 
 fn find_path_system(
     mut commands: Commands,
-    _graph: Res<WaypointGraph>,
+    graph: Res<WaypointGraph>,
     query: Query<(Entity, &PathQuery), Added<PathQuery>>,
     waypoint_query: Query<(Entity, &Transform), With<Waypoint>>,
 ) {
@@ -101,16 +102,42 @@ fn find_path_system(
             }
         }
         if let ((_, Some(start_entity)), (_, Some(end_entity))) = (start_entity, end_entity) {
-            commands.entity(path_query_entity).insert(WaypointPath {
-                waypoints: vec![start_entity, end_entity],
-            });
+            // pathfinding::directed::astar::
+            let res = astar(
+                &start_entity,
+                |e| graph.graph_map.neighbors(*e).map(|e| (e, 1)),
+                |_e| 1,
+                |e| *e == end_entity,
+            );
+            if let Some(res) = res {
+                commands
+                    .entity(path_query_entity)
+                    .insert(WaypointPath { waypoints: res.0 });
+            }
         }
     }
 }
 
-fn print_new_path_system(query: Query<&WaypointPath, Added<WaypointPath>>) {
+fn print_new_path_system(
+    query: Query<&WaypointPath, Added<WaypointPath>>,
+    waypoint_query: Query<&Transform, With<Waypoint>>,
+    mut debug_lines: ResMut<DebugLines>,
+) {
     for path in query.iter() {
         info!("path: {:?}", path);
+
+        for p in path.waypoints.windows(2) {
+            let start = waypoint_query.get(p[0]).unwrap();
+            let end = waypoint_query.get(p[1]).unwrap();
+
+            let offs = Vec3::new(0.0, 1.0, 0.0);
+            debug_draw_line(
+                &mut debug_lines,
+                start.translation + offs,
+                end.translation + offs,
+                Some(10.0),
+            );
+        }
     }
 }
 
