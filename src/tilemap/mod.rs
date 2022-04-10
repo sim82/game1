@@ -4,7 +4,6 @@ use bevy::{prelude::*, render::render_resource::TextureUsages};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
-use rand::{thread_rng, Rng};
 
 use crate::{debug::debug_draw_cross, path, pointer::ClickEvent};
 pub mod io;
@@ -28,11 +27,11 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query
     );
     map_settings.mesh_type = TilemapMeshType::Hexagon(HexType::Row);
 
-    let (mut layer_builder, layer_entity) =
-        LayerBuilder::<TileBundle>::new(&mut commands, map_settings.clone(), 0u16, 0u16);
+    let (layer_builder, layer_entity) =
+        LayerBuilder::<TileBundle>::new(&mut commands, map_settings, 0u16, 0u16);
     map.add_layer(&mut commands, 0u16, layer_entity);
 
-    map_query.build_layer(&mut commands, layer_builder, texture_handle.clone());
+    map_query.build_layer(&mut commands, layer_builder, texture_handle);
 
     // Spawn Map
     // Required in order to use map_query to retrieve layers/tiles.
@@ -223,7 +222,7 @@ fn hex_neighbors(pos: TilePos) -> [TilePos; 6] {
     ]
 }
 
-fn new_tile_system(query: Query<(&TilePos), Added<TilePos>>) {
+fn new_tile_system(query: Query<&TilePos, Added<TilePos>>) {
     for pos in query.iter() {
         info!("new tile: {:?}", pos);
     }

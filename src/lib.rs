@@ -25,6 +25,9 @@ pub mod sprites {
 }
 
 #[derive(Component)]
+pub struct InputTarget;
+
+#[derive(Component)]
 pub struct TargetFlag;
 
 // stuff related to projectiles (Pew, Pew)

@@ -1,14 +1,11 @@
-use std::collections::HashMap;
-
 use bevy::{
-    ecs::system::EntityCommands,
     input::{
         mouse::{MouseScrollUnit, MouseWheel},
         system::exit_on_esc_system,
     },
     prelude::*,
 };
-use game1::ui::dom::{get_stylesheet, spawn_element, Div, Element, MyStyle};
+use game1::ui::dom::{get_stylesheet, spawn_element, Div, Element};
 
 /// This example illustrates the various features of Bevy UI.
 fn main() {

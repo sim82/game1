@@ -16,8 +16,8 @@ use game1::{
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
     sprites,
     tilemap::PlayfieldPlugin,
-    ui::{IngameUiPlugin, TrackingOverlayTarget},
-    Pew, TargetFlag, TimeToLive,
+    ui::IngameUiPlugin,
+    InputTarget, Pew, TargetFlag, TimeToLive,
 };
 use rand::{thread_rng, Rng};
 
@@ -185,8 +185,6 @@ fn setup_camera(
 #[derive(Component)]
 struct WalkToTarget;
 
-#[derive(Component)]
-struct InputTarget;
 fn walk_to_target(
     target_query: Query<&Transform, With<TargetFlag>>,
     mut query: Query<(&Transform, &mut VelocityWalker), With<WalkToTarget>>,
