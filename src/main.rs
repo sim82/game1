@@ -3,6 +3,7 @@ use bevy::{diagnostic::DiagnosticsPlugin, input::system::exit_on_esc_system, pre
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 
 use bevy_ecs_tilemap::TilemapPlugin;
+use bevy_egui::EguiPlugin;
 use big_brain::BigBrainPlugin;
 use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin},
@@ -31,19 +32,18 @@ fn main() {
         .add_plugin(TilemapPlugin)
         .add_plugin(AsepritePlugin)
         .add_plugin(BigBrainPlugin)
-        .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::default());
+        .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::with_depth_test(true))
+        .add_plugin(EguiPlugin);
     //
     // internal plugins
     //
     app.add_plugin(PointerPlugin)
         .add_plugin(MovementPlugin)
         .add_plugin(AiPlugin)
-        // .add_plugin(PathPlugin)
+        .add_plugin(PathPlugin)
         .add_plugin(AiDiagnosticsPlugin)
         .add_plugin(IngameUiPlugin)
-        // .add_plugin(PlayfieldPlugin)
-        //
-        ;
+        .add_plugin(PlayfieldPlugin);
     //
     // startup systems
     //
@@ -56,7 +56,7 @@ fn main() {
         .add_system(walk_to_target)
         .add_system(apply_input)
         .add_system(exit_on_esc_system)
-        .add_system(spawn_waypoint_on_click)
+        // .add_system(spawn_waypoint_on_click)
         .add_system(game1::pew_move_system)
         .add_system(game1::time_to_live_reaper_system);
     //
@@ -113,7 +113,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
-    for _ in 0..10 {
+    for _ in 0..1 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -143,9 +143,10 @@ pub fn setup(mut commands: Commands) {
         .insert(InputTarget)
         .insert(CrabMoveWalker::default())
         .insert(TargetFlag)
-        .insert(TrackingOverlayTarget {
-            text: "meeeeeep".into(),
-        });
+        // .insert(TrackingOverlayTarget {
+        //     text: "meeeeeep".into(),
+        // })
+        ;
 
     commands
         .spawn_bundle(AsepriteBundle {
@@ -153,7 +154,7 @@ pub fn setup(mut commands: Commands) {
             // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
                 scale: Vec3::splat(1.),
-                translation: Vec3::new(0., 100., 0.),
+                translation: Vec3::new(0., 100., 10.),
                 ..Default::default()
             },
 
@@ -163,15 +164,19 @@ pub fn setup(mut commands: Commands) {
 }
 
 fn setup_camera(
+    windows: Res<Windows>,
     mut query: Query<(&mut Transform, &mut OrthographicProjection, &Camera), Added<Camera>>,
 ) {
     for (mut transform, _projection, camera) in query.iter_mut() {
         if camera.name != Some("camera_2d".into()) {
             continue;
         }
+
+        let window = windows.get_primary().unwrap();
+
         // let z = transform.translation.z;
-        transform.translation.x = 600.0 / 4.0;
-        transform.translation.y = 400.0 / 4.0;
+        transform.translation.x = window.width() / 8.0;
+        transform.translation.y = window.height() / 8.0;
         transform.scale.x = 0.25;
         transform.scale.y = 0.25;
     }

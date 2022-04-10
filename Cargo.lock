@@ -223,6 +223,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97342ea2f3bad36be2ded1d1fbd569ff83147b70697f12f1579e87a7480afa36"
 dependencies = [
+ "bevy_dylib",
  "bevy_internal",
 ]
 
@@ -428,6 +429,15 @@ dependencies = [
  "bevy_ecs",
  "bevy_log",
  "bevy_utils",
+]
+
+[[package]]
+name = "bevy_dylib"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37e4fbd14b69af53cd9638c1071b74a3f66fc2ae826fa7c8f02ff15a65d65fd3"
+dependencies = [
+ "bevy_internal",
 ]
 
 [[package]]
@@ -1576,11 +1586,15 @@ dependencies = [
  "bevy_aseprite",
  "bevy_asset_loader",
  "bevy_ecs_tilemap",
+ "bevy_egui",
  "bevy_prototype_debug_lines",
  "big-brain",
+ "petgraph",
  "rand",
  "rand_distr",
  "rtriangulate",
+ "serde",
+ "serde_yaml",
 ]
 
 [[package]]
@@ -2040,6 +2054,12 @@ dependencies = [
  "libc",
  "pkg-config",
 ]
+
+[[package]]
+name = "linked-hash-map"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lock_api"
@@ -3019,6 +3039,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_yaml"
+version = "0.8.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4a521f2940385c165a24ee286aa8599633d162077a54bdcae2a6fd5a7bfa7a0"
+dependencies = [
+ "indexmap",
+ "ryu",
+ "serde",
+ "yaml-rust",
+]
+
+[[package]]
 name = "sha1"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3737,3 +3769,12 @@ name = "xi-unicode"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a67300977d3dc3f8034dae89778f502b6ba20b269527b3223ba59c0cf393bb8a"
+
+[[package]]
+name = "yaml-rust"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56c1936c4cc7a1c9ab21a1ebb602eb942ba868cbd44a99cb7cdc5892335e1c85"
+dependencies = [
+ "linked-hash-map",
+]

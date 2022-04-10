@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 pub mod ai;
 pub mod brainy;
+pub mod debug;
 pub mod movement;
 pub mod path;
 pub mod pointer;
