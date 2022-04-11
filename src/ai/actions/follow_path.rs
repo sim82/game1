@@ -24,7 +24,22 @@ pub fn follow_path_action_system(
         {
             match *action_state {
                 ActionState::Requested => {
-                    info!("follow path started");
+                    let start_point = waypoint_path
+                        .waypoints
+                        .iter()
+                        .enumerate()
+                        .map(|(i, wp_entity)| {
+                            let Transform {
+                                translation: wp_pos,
+                                ..
+                            } = waypoint_query.get(*wp_entity).unwrap();
+                            (i, (*translation - *wp_pos).length())
+                        })
+                        .min_by(|(_, l), (_, r)| l.partial_cmp(r).unwrap())
+                        .unwrap()
+                        .0;
+                    info!("follow path started at {}", start_point);
+                    follow_path.progress = start_point;
                     *action_state = ActionState::Executing
                 }
                 ActionState::Executing => {
