@@ -74,13 +74,16 @@ fn update_graph_system(
 struct PathQuery {
     start: Vec3,
     end: Vec3,
+    target: Entity,
 }
 
-#[derive(Component, Debug)]
-struct WaypointPath {
-    waypoints: Vec<Entity>,
+#[derive(Component, Debug, Reflect)]
+pub struct WaypointPath {
+    pub waypoints: Vec<Entity>,
 }
 
+// TODO: check if this is a useful pattern: spawn path finding as it's own entity (to make async path finding easier),
+// and then have the finished path attached to a target entity (that would then react to this according to AI decisions).
 fn find_path_system(
     mut commands: Commands,
     graph: Res<WaypointGraph>,
@@ -111,10 +114,11 @@ fn find_path_system(
             );
             if let Some(res) = res {
                 commands
-                    .entity(path_query_entity)
+                    .entity(path_query.target)
                     .insert(WaypointPath { waypoints: res.0 });
             }
         }
+        commands.entity(path_query_entity).despawn();
     }
 }
 
@@ -150,7 +154,7 @@ fn path_egui_ui_system(
     mut commands: Commands,
     mut egui_context: ResMut<EguiContext>,
     player_query: Query<&Transform, With<InputTarget>>,
-    ferris_query: Query<&Transform, With<Zappable>>,
+    ferris_query: Query<(Entity, &Transform), With<Zappable>>,
 ) {
     let mut do_find_path = false;
 
@@ -164,15 +168,19 @@ fn path_egui_ui_system(
                 translation: player_pos,
                 ..
             }),
-            Ok(Transform {
-                translation: ferris_pos,
-                ..
-            }),
+            Ok((
+                ferris_entity,
+                Transform {
+                    translation: ferris_pos,
+                    ..
+                },
+            )),
         ) = (player_query.get_single(), ferris_query.get_single())
         {
             commands.spawn().insert(PathQuery {
                 start: *ferris_pos,
                 end: *player_pos,
+                target: ferris_entity,
             });
         }
     }

@@ -9,7 +9,7 @@ pub fn debug_draw_cross(debug_lines: &mut DebugLines, p: Vec3, duration: Option<
 
     let mut start = p + c0;
     let mut end = p - c0;
-    let zoff = 100.0;
+    let zoff = 5.0;
     start.z = zoff;
     end.z = zoff;
     debug_lines.line(start, end, duration);
@@ -28,7 +28,7 @@ pub fn debug_draw_line(
     duration: Option<f32>,
 ) {
     let duration = duration.unwrap_or(0.0);
-    let zoff = 100.0;
+    let zoff = 5.0;
     start.z = zoff;
     end.z = zoff;
     debug_lines.line(start, end, duration);
