@@ -28,10 +28,11 @@ impl Plugin for AiPlugin {
             .add_system_to_stage(BigBrainStage::Actions, follow_action_system)
             .add_system_to_stage(BigBrainStage::Actions, jiggle_around_action_system)
             .add_system_to_stage(BigBrainStage::Actions, dodge_pew_action_system)
-            .add_system_to_stage(BigBrainStage::Actions, follow_path_action_system)
+            // .add_system_to_stage(BigBrainStage::Actions, follow_path_action_system)
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, pew_incoming_scorer_system)
-            .add_system_to_stage(BigBrainStage::Scorers, can_follow_path_scorer_system);
+            // .add_system_to_stage(BigBrainStage::Scorers, can_follow_path_scorer_system)
+            ;
     }
 }

@@ -52,7 +52,7 @@ pub fn pew_incoming_scorer_system(
             {
                 let dx = translation.x - pew_translation.x;
                 let dy = (translation.y - pew_translation.y).abs();
-                if (dx > 0.0) == *pew_going_right && dy < tune::PEW_ZAP_DISTANCE {
+                if (dx > 0.0) == *pew_going_right && dy < tune::PEW_ZAP_DISTANCE * 2.0 {
                     pew_collision_score +=
                         LinearEvaluator::new_ranged(tune::PEW_DETECT_FAR, tune::PEW_DETECT_NEAR)
                             .evaluate(dx.abs());

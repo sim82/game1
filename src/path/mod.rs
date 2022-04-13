@@ -115,7 +115,8 @@ fn find_path_system(
             if let Some(res) = res {
                 commands
                     .entity(path_query.target)
-                    .insert(WaypointPath { waypoints: res.0 });
+                    .insert(WaypointPath { waypoints: res.0 })
+                    .insert(crate::movement::crab_controller::CrabFollowPath::default());
             }
         }
         commands.entity(path_query_entity).despawn();

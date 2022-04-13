@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::movement::{
-    crab_move::{CrabMoveDirection, CrabMoveWalker},
-    walk::VelocityWalker,
-};
+use crate::movement::crab_move::{CrabMoveDirection, CrabMoveWalker};
 
 #[derive(Component, Debug, Clone)]
 pub struct JiggleAround {

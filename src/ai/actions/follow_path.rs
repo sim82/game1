@@ -12,13 +12,14 @@ pub struct FollowPath {
 }
 
 pub fn follow_path_action_system(
+    mut commands: Commands,
     mut walkers: Query<(&Transform, &mut CrabMoveWalker, &WaypointPath)>,
     // We execute actions by querying for their associated Action Component
     // (Drink in this case). You'll always need both Actor and ActionState.
-    mut query: Query<(&Actor, &mut ActionState, &mut FollowPath)>,
+    mut query: Query<(Entity, &Actor, &mut ActionState, &mut FollowPath)>,
     waypoint_query: Query<&Transform, With<Waypoint>>,
 ) {
-    for (Actor(entity), mut action_state, mut follow_path) in query.iter_mut() {
+    for (action_entity, Actor(entity), mut action_state, mut follow_path) in query.iter_mut() {
         if let Ok((Transform { translation, .. }, mut crab_move_walker, waypoint_path)) =
             walkers.get_mut(*entity)
         {

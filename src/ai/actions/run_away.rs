@@ -1,9 +1,6 @@
 use crate::{
     ai::util::TargetDistanceProbe,
-    movement::{
-        crab_move::{CrabMoveDirection, CrabMoveWalker},
-        walk::VelocityWalker,
-    },
+    movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
     TargetFlag,
 };
 use bevy::prelude::*;
@@ -30,26 +27,16 @@ pub fn run_away_action_system(
         .map(|t| t.translation)
         .unwrap_or_default();
 
-    for (Actor(actor), mut state, run_away) in query.iter_mut() {
+    for (Actor(actor), mut state, _run_away) in query.iter_mut() {
         // Use the drink_action's actor to look up the corresponding Thirst Component.
-        if let Ok((transform, target_distance, mut walker)) = walkers.get_mut(*actor) {
+        if let Ok((transform, _target_distance, mut walker)) = walkers.get_mut(*actor) {
             match *state {
                 ActionState::Requested => {
-                    // println!("Time to run away!");
-                    // let tv = (target_pos - transform.translation).normalize();
-                    // walker.velocity = -0.5 * tv;
-
                     *state = ActionState::Executing;
                 }
                 ActionState::Executing => {
-                    // if target_distance.d <= run_away.until {
                     let tv = (transform.translation - target_pos).normalize();
                     walker.direction = CrabMoveDirection::find_nearest(tv);
-                    // info!("walk_velocity: {:?}", walker.velocity);
-                    // } else {
-                    //     walker.velocity = Vec3::ZERO;
-                    //     *state = ActionState::Success;
-                    // }
                 }
                 // All Actions should make sure to handle cancellations!
                 ActionState::Cancelled => {
