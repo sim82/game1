@@ -11,9 +11,10 @@ use crate::{
         },
         scorers::{
             can_follow_path::CanFollowPath, curiosity::Curiousity, fear::Fear,
-            pew_incoming::PewIncoming,
+            health_low::LowHealth, pew_incoming::PewIncoming,
         },
         util::TargetDistanceProbe,
+        HealthPoints,
     },
     movement::{crab_move::CrabMoveWalker, walk::VelocityWalker, zap::Zappable},
     sprites,
@@ -57,6 +58,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                     threshold: rng.sample(dist).clamp(0.0, 1.0),
                 })
                 .when(PewIncoming::build(), DodgePew::build())
+                .when(LowHealth::build(), RunAway {})
                 .when(CanFollowPath::default(), FollowPath::default())
                 .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
                 .when(
@@ -66,5 +68,6 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                     },
                 )
                 .otherwise(JiggleAround::default()),
-        );
+        )
+        .insert(HealthPoints { health: 50 });
 }

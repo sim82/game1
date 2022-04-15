@@ -6,7 +6,8 @@ use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_egui::EguiPlugin;
 use big_brain::BigBrainPlugin;
 use game1::{
-    ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin},
+    ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin, HealthPoints},
+    item::{medikit::Medikit, ItemPlugin},
     movement::{
         crab_move::{CrabMoveDirection, CrabMoveWalker},
         walk::VelocityWalker,
@@ -43,7 +44,8 @@ fn main() {
         .add_plugin(PathPlugin)
         .add_plugin(AiDiagnosticsPlugin)
         .add_plugin(IngameUiPlugin)
-        .add_plugin(PlayfieldPlugin);
+        .add_plugin(PlayfieldPlugin)
+        .add_plugin(ItemPlugin);
     //
     // startup systems
     //
@@ -143,6 +145,7 @@ pub fn setup(mut commands: Commands) {
         .insert(InputTarget)
         .insert(CrabMoveWalker::default())
         .insert(TargetFlag)
+        .insert(HealthPoints{health: 25})
         // .insert(TrackingOverlayTarget {
         //     text: "meeeeeep".into(),
         // })
@@ -161,6 +164,19 @@ pub fn setup(mut commands: Commands) {
             ..Default::default()
         })
         .insert(MousePointerFlag);
+
+    commands
+        .spawn_bundle(AsepriteBundle {
+            aseprite: sprites::Medikit::sprite(),
+            transform: Transform {
+                scale: Vec3::splat(1.),
+                // translation: Vec3::new(180., 70., 10.),
+                translation: Vec3::new(70., 70., 10.),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(Medikit);
 }
 
 fn setup_camera(

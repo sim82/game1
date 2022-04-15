@@ -35,6 +35,7 @@ pub fn crab_override_direction_system(
 
         if dodge_pew.time_left_before_change <= 0.0 {
             dodge_pew.time_left_before_change = tune::CHANGE_DIRECTION_TIMEOUT;
+            // info!("dodging");
 
             walker.direction = match walker.direction {
                 CrabMoveDirection::NorthWest => CrabMoveDirection::NorthEast,
@@ -118,7 +119,7 @@ pub fn crab_follow_path_system(
             );
 
             if d.length() < min_dist {
-                info!("follow path next step: {}", follow_path.next_step);
+                // info!("follow path next step: {}", follow_path.next_step);
                 follow_path.next_step += 1;
             }
         }

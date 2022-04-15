@@ -1,4 +1,6 @@
-use bevy::prelude::*;
+use std::sync::Mutex;
+
+use bevy::{prelude::*, tasks::ComputeTaskPool};
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
 use pathfinding::prelude::*;
@@ -84,16 +86,17 @@ pub struct WaypointPath {
 
 // TODO: check if this is a useful pattern: spawn path finding as it's own entity (to make async path finding easier),
 // and then have the finished path attached to a target entity (that would then react to this according to AI decisions).
-fn find_path_system(
+fn _find_path_system(
     mut commands: Commands,
     graph: Res<WaypointGraph>,
     query: Query<(Entity, &PathQuery), Added<PathQuery>>,
     waypoint_query: Query<(Entity, &Transform), With<Waypoint>>,
 ) {
-    let mut start_entity = (f32::MAX, None);
-    let mut end_entity = (f32::MAX, None);
-
+    let start = bevy::utils::Instant::now();
     for (path_query_entity, path_query) in query.iter() {
+        let mut start_entity = (f32::MAX, None);
+        let mut end_entity = (f32::MAX, None);
+
         for (waypoint_entity, Transform { translation, .. }) in waypoint_query.iter() {
             let dstart = (*translation - path_query.start).length();
             let dend = (*translation - path_query.end).length();
@@ -109,7 +112,7 @@ fn find_path_system(
             let res = astar(
                 &start_entity,
                 |e| graph.graph_map.neighbors(*e).map(|e| (e, 1)),
-                |_e| 1,
+                |_e| 1, // NOTE: heuristic missing (parallel version has it)
                 |e| *e == end_entity,
             );
             if let Some(res) = res {
@@ -120,6 +123,80 @@ fn find_path_system(
             }
         }
         commands.entity(path_query_entity).despawn();
+    }
+    if !query.is_empty() {
+        info!("path find: {:?}", start.elapsed());
+    }
+}
+
+// TODO: check if this is a useful pattern: spawn path finding as it's own entity (to make async path finding easier),
+// and then have the finished path attached to a target entity (that would then react to this according to AI decisions).
+fn find_path_system_par(
+    mut commands: Commands,
+    pool: Res<ComputeTaskPool>,
+    graph: Res<WaypointGraph>,
+    query: Query<(Entity, &PathQuery), Added<PathQuery>>,
+    waypoint_query: Query<(Entity, &Transform), With<Waypoint>>,
+) {
+    let out = Mutex::new(Vec::<(Entity, WaypointPath, Entity)>::new());
+    let start = bevy::utils::Instant::now();
+    // scatter: do actual path finding in parallel
+    query.par_for_each(&pool, 16, |(path_query_entity, path_query)| {
+        let mut start_entity = (f32::MAX, None);
+        let mut end_entity = (f32::MAX, None);
+
+        for (waypoint_entity, Transform { translation, .. }) in waypoint_query.iter() {
+            let dstart = (*translation - path_query.start).length();
+            let dend = (*translation - path_query.end).length();
+            if dstart < start_entity.0 {
+                start_entity = (dstart, Some(waypoint_entity));
+            }
+            if dend < end_entity.0 {
+                end_entity = (dend, Some(waypoint_entity));
+            }
+        }
+        if let ((_, Some(start_entity)), (_, Some(end_entity))) = (start_entity, end_entity) {
+            let res = astar(
+                &start_entity,
+                |e| graph.graph_map.neighbors(*e).map(|e| (e, 1)),
+                |_e| {
+                    // FIXME: this might be stupid: heuristic is based on actual 'pixel distance' but successor function
+                    // always returns distance 1...
+                    waypoint_query
+                        .get(*_e)
+                        .map(|(_, Transform { translation, .. })| {
+                            (*translation - path_query.end).length() as i32
+                        })
+                        .unwrap_or(1)
+                },
+                |e| *e == end_entity,
+            );
+            if let Some(res) = res {
+                let waypoint_path = WaypointPath { waypoints: res.0 };
+                if let Ok(mut out) = out.lock() {
+                    out.push((path_query.target, waypoint_path, path_query_entity));
+                }
+            }
+        }
+    });
+    if !query.is_empty() {
+        info!("path find (par): {:?}", start.elapsed());
+    }
+    // gather & distribute results to target entities (sidenote: I love rust)
+    if let Ok(out) = out.into_inner() {
+        for (target, path, path_query_entity) in out {
+            commands
+                .entity(target)
+                .insert(path)
+                .insert(crate::movement::crab_controller::CrabFollowPath::default());
+            // cleanup path query in this loop as well. Not sure if this is better than iterating over query
+            // again, but less code is more good.
+            commands.entity(path_query_entity).despawn();
+        }
+    }
+
+    if !query.is_empty() {
+        info!("path find: {:?}", start.elapsed());
     }
 }
 
@@ -164,25 +241,46 @@ fn path_egui_ui_system(
     });
 
     if do_find_path {
-        if let (
-            Ok(Transform {
-                translation: player_pos,
-                ..
-            }),
-            Ok((
+        // if let (
+        //     Ok(Transform {
+        //         translation: player_pos,
+        //         ..
+        //     }),
+        //     Ok((
+        //         ferris_entity,
+        //         Transform {
+        //             translation: ferris_pos,
+        //             ..
+        //         },
+        //     )),
+        // ) = (player_query.get_single(), ferris_query.get_single())
+        // {
+        //     commands.spawn().insert(PathQuery {
+        //         start: *ferris_pos,
+        //         end: *player_pos,
+        //         target: ferris_entity,
+        //     });
+        // }
+
+        if let Ok(Transform {
+            translation: player_pos,
+            ..
+        }) = player_query.get_single()
+        {
+            for (
                 ferris_entity,
                 Transform {
                     translation: ferris_pos,
                     ..
                 },
-            )),
-        ) = (player_query.get_single(), ferris_query.get_single())
-        {
-            commands.spawn().insert(PathQuery {
-                start: *ferris_pos,
-                end: *player_pos,
-                target: ferris_entity,
-            });
+            ) in ferris_query.iter()
+            {
+                commands.spawn().insert(PathQuery {
+                    start: *ferris_pos,
+                    end: *player_pos,
+                    target: ferris_entity,
+                });
+            }
         }
     }
 }
@@ -194,8 +292,8 @@ impl Plugin for PathPlugin {
         app.init_resource::<WaypointGraph>()
             .add_system(debug_draw_system)
             .add_system(update_graph_system)
-            .add_system(find_path_system)
-            .add_system(print_new_path_system)
+            .add_system(find_path_system_par)
+            // .add_system(print_new_path_system)
             .add_system(path_egui_ui_system);
     }
 }

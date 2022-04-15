@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{tune, Pew};
+use crate::{ai::HealthPoints, tune, Pew};
 
 #[derive(Component)]
 pub struct Zappable;
@@ -38,5 +38,11 @@ pub fn check_pew_intersection_system(
         {
             commands.entity(entity).remove::<BeingZapped>();
         }
+    }
+}
+
+pub fn apply_zap_damage(time: Res<Time>, mut query: Query<&mut HealthPoints, With<BeingZapped>>) {
+    for mut health_points in query.iter_mut() {
+        health_points.health -= (time.delta_seconds() * 50.0) as i32;
     }
 }

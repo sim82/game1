@@ -4,6 +4,7 @@ use bevy::prelude::*;
 pub mod ai;
 pub mod brainy;
 pub mod debug;
+pub mod item;
 pub mod movement;
 pub mod path;
 pub mod pointer;
@@ -22,6 +23,7 @@ pub mod sprites {
     aseprite!(pub Ferris, "assets/ferris2.0.aseprite");
     aseprite!(pub Pointer, "assets/pointer.aseprite");
     aseprite!(pub Pew, "assets/pew.aseprite");
+    aseprite!(pub Medikit, "assets/medikit.aseprite");
 }
 
 #[derive(Component)]
@@ -57,7 +59,7 @@ pub fn time_to_live_reaper_system(
     for (entity, mut ttl) in query.iter_mut() {
         ttl.0 -= time.delta_seconds();
         if ttl.0 <= 0.0 {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
