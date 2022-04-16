@@ -1,8 +1,5 @@
 use crate::{
-    movement::{
-        controller::MovementPriority,
-        crab_move::{CrabMoveDirection, CrabMoveWalker},
-    },
+    movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
     path::{Waypoint, WaypointPath},
 };
 

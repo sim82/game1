@@ -1,4 +1,4 @@
-use crate::{pointer::MouseGrabState, sprites, tune, Pew};
+use crate::{pointer::MouseGrabState, sprites, tune};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteAnimation;
 

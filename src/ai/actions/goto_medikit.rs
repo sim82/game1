@@ -3,10 +3,7 @@ use big_brain::prelude::*;
 
 use crate::{
     item::medikit::Medikit,
-    movement::{
-        crab_controller::CrabFollowPath,
-        crab_move::{CrabMoveDirection, CrabMoveWalker},
-    },
+    movement::{crab_controller::CrabFollowPath, crab_move::CrabMoveWalker},
     path::PathQuery,
 };
 
@@ -33,7 +30,7 @@ pub fn goto_medikit_action_system(
                 translation: actor_pos,
                 ..
             },
-            mut walker,
+            mut _walker,
         ) = actor_query.get_mut(*actor).unwrap();
         match *state {
             // let mut nearest_dist

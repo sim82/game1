@@ -2,12 +2,15 @@ use std::collections::VecDeque;
 
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{self, Modifiers, RichText},
+    egui::{self, RichText},
     EguiContext,
 };
 
 use crate::{
-    movement::crab_controller::{CrabEvade, CrabFollowPath},
+    movement::{
+        crab_controller::{CrabEvade, CrabFollowPath},
+        zap::BeingZapped,
+    },
     path::WaypointPath,
 };
 
@@ -29,6 +32,7 @@ impl Default for AiInspectState {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn ai_inspect_egui_system(
     // mut commands: Commands,
     mut egui_context: ResMut<EguiContext>,
@@ -38,6 +42,7 @@ pub fn ai_inspect_egui_system(
     evade_query: Query<&CrabEvade>,
     health_query: Query<&HealthPoints, With<AiInspectTarget>>,
     action_query: Query<&DebugAction, (With<AiInspectTarget>, Changed<DebugAction>)>,
+    zapped_query: Query<(), (With<BeingZapped>, With<AiInspectTarget>)>,
 ) {
     for action in action_query.iter() {
         if Some(action) != state.debug_action.back() {
@@ -68,6 +73,10 @@ pub fn ai_inspect_egui_system(
 
         if evade_query.get_single().is_ok() {
             ui.label(RichText::new("EVADE!").color(egui::Color32::RED));
+        }
+
+        if zapped_query.get_single().is_ok() {
+            ui.label(RichText::new("ZAPPED!").color(egui::Color32::LIGHT_BLUE));
         }
 
         for action in state.debug_action.iter() {

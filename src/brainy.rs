@@ -6,13 +6,12 @@ use rand::Rng;
 use crate::{
     ai::{
         actions::{
-            dodge_pew::DodgePew, follow::Follow, follow_path::FollowPath,
-            goto_medikit::GotoMedikit, jiggle_around::JiggleAround, run_away::RunAway,
+            dodge_pew::DodgePew, follow::Follow, goto_medikit::GotoMedikit,
+            jiggle_around::JiggleAround, run_away::RunAway,
         },
         inspect::AiInspectTarget,
         scorers::{
-            can_follow_path::CanFollowPath, curiosity::Curiousity, fear::Fear,
-            health_low::LowHealth, pew_incoming::PewIncoming,
+            curiosity::Curiousity, fear::Fear, health_low::LowHealth, pew_incoming::PewIncoming,
         },
         util::TargetDistanceProbe,
         HealthPoints,
@@ -60,7 +59,6 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
                 })
                 .when(PewIncoming::build(), DodgePew::build())
                 .when(LowHealth::build(), GotoMedikit::default())
-                .when(CanFollowPath::default(), FollowPath::default())
                 .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
                 .when(
                     Curiousity::build().within(tune::CURIOSITY_DISTANCE),

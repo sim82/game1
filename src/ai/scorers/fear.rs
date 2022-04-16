@@ -4,7 +4,7 @@ use big_brain::{
     prelude::*,
 };
 
-use crate::ai::util::{TargetDistanceProbe, ThresholdEvaluator};
+use crate::ai::util::TargetDistanceProbe;
 
 #[derive(Component, Debug)]
 pub struct Fear {

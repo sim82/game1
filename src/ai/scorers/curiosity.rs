@@ -1,4 +1,4 @@
-use crate::ai::util::{TargetDistanceProbe, ThresholdEvaluator};
+use crate::ai::util::TargetDistanceProbe;
 use bevy::prelude::*;
 use big_brain::{
     evaluators::{Evaluator, LinearEvaluator},
