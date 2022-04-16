@@ -73,10 +73,10 @@ fn update_graph_system(
 }
 
 #[derive(Component)]
-struct PathQuery {
-    start: Vec3,
-    end: Vec3,
-    target: Entity,
+pub struct PathQuery {
+    pub start: Vec3,
+    pub end: Vec3,
+    pub target: Entity,
 }
 
 #[derive(Component, Debug, Reflect)]

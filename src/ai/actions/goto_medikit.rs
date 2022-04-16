@@ -4,6 +4,7 @@ use big_brain::prelude::*;
 use crate::{
     item::medikit::Medikit,
     movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
+    path::PathQuery,
 };
 
 #[derive(Component, Debug, Default, Clone)]
@@ -12,6 +13,7 @@ pub struct GotoMedikit {
 }
 
 pub fn goto_medikit_action_system(
+    mut commands: Commands,
     mut query: Query<(&Actor, &mut ActionState, &mut GotoMedikit)>,
     mut actor_query: Query<(&Transform, &mut CrabMoveWalker)>,
     medikit_query: Query<&Transform, With<Medikit>>,
@@ -40,6 +42,11 @@ pub fn goto_medikit_action_system(
                 if let Some(best_pos) = best_pos {
                     goto_medikit.pos = best_pos;
                     info!("goto medikit: pos: {:?}", goto_medikit.pos);
+                    commands.spawn().insert(PathQuery {
+                        start: *actor_pos,
+                        end: best_pos,
+                        target: *actor,
+                    });
                     *state = ActionState::Executing
                 } else {
                     info!("failed to find medikit");
@@ -47,8 +54,8 @@ pub fn goto_medikit_action_system(
                 }
             }
             ActionState::Executing => {
-                let tv = (goto_medikit.pos - *actor_pos).normalize();
-                walker.direction = CrabMoveDirection::find_nearest(tv);
+                // let tv = (goto_medikit.pos - *actor_pos).normalize();
+                // walker.direction = CrabMoveDirection::find_nearest(tv);
             }
             ActionState::Cancelled => {
                 *state = ActionState::Failure;

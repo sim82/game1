@@ -6,6 +6,7 @@ pub struct ItemPlugin;
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(medikit::pick_medikit_system);
+        app.add_system(medikit::pick_medikit_system)
+            .add_system(medikit::spawn_medikits_system);
     }
 }

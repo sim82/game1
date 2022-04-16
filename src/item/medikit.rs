@@ -1,5 +1,7 @@
-use crate::ai::HealthPoints;
+use crate::{ai::HealthPoints, path::Waypoint, sprites};
 use bevy::prelude::*;
+use bevy_aseprite::AsepriteBundle;
+use rand::prelude::SliceRandom;
 
 #[derive(Component)]
 pub struct Medikit;
@@ -7,6 +9,7 @@ pub struct Medikit;
 pub mod tune {
     pub const MEDIKIT_PICK_DIST: f32 = 8.0;
     pub const MEDIKIT_HEALTH: i32 = 25;
+    pub const MEDIKIT_COUNT: usize = 10;
 }
 
 pub fn pick_medikit_system(
@@ -43,4 +46,41 @@ pub fn pick_medikit_system(
     }
 
     //blas
+}
+
+pub fn spawn_medikits_system(
+    mut commands: Commands,
+    query: Query<Entity, With<Medikit>>,
+    waypoints_query: Query<&Transform, With<Waypoint>>,
+) {
+    let count = query.iter().count();
+    if count >= tune::MEDIKIT_COUNT {
+        return;
+    }
+
+    let num_create = tune::MEDIKIT_COUNT - count;
+    let waypoint_pos = waypoints_query
+        .iter()
+        .map(|transform| transform.translation)
+        .collect::<Vec<_>>();
+
+    if waypoint_pos.len() < num_create {
+        return;
+    }
+
+    let mut rng = rand::thread_rng();
+
+    for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
+        commands
+            .spawn_bundle(AsepriteBundle {
+                aseprite: sprites::Medikit::sprite(),
+                transform: Transform {
+                    scale: Vec3::splat(1.),
+                    translation: *pos + Vec3::new(0.0, 0.0, 5.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .insert(Medikit);
+    }
 }

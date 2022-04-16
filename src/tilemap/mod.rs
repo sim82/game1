@@ -360,8 +360,10 @@ pub struct PlayfieldPlugin;
 impl Plugin for PlayfieldPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InteractionState>()
-            .add_startup_system(startup)
-            // .add_startup_system(autoload_startup_map_system)
+            // using PreStartup feels a bit cheaty, but it works so that we can populate our map / layer id 0 tiles in
+            // another startup system, so I guess this is what StartupStages are there for...
+            .add_startup_system_to_stage(StartupStage::PreStartup, startup)
+            .add_startup_system(autoload_startup_map_system)
             .add_system(background_on_click)
             .add_system(set_texture_filters_to_nearest)
             // .add_system(new_tile_system)

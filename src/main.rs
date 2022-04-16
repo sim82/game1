@@ -164,19 +164,6 @@ pub fn setup(mut commands: Commands) {
             ..Default::default()
         })
         .insert(MousePointerFlag);
-
-    commands
-        .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Medikit::sprite(),
-            transform: Transform {
-                scale: Vec3::splat(1.),
-                // translation: Vec3::new(180., 70., 10.),
-                translation: Vec3::new(70., 70., 10.),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Medikit);
 }
 
 fn setup_camera(
