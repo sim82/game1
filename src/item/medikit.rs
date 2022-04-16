@@ -31,7 +31,7 @@ pub fn pick_medikit_system(
         ) in receiver_query.iter_mut()
         {
             let dist = (*medikit_pos - *receiver_pos).length();
-            info!("medikit {}", dist);
+            // info!("medikit {}", dist);
 
             if dist <= tune::MEDIKIT_PICK_DIST {
                 health_points.health += tune::MEDIKIT_HEALTH;

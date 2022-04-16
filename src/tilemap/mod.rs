@@ -12,6 +12,7 @@ pub mod io;
 
 fn startup(mut commands: Commands, asset_server: Res<AssetServer>, mut map_query: MapQuery) {
     // commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    info!("startup tilemap");
 
     let texture_handle = asset_server.load("pointy_hex_tiles_18x20.png");
 
@@ -222,7 +223,7 @@ fn hex_neighbors(pos: TilePos) -> [TilePos; 6] {
     ]
 }
 
-fn new_tile_system(query: Query<&TilePos, Added<TilePos>>) {
+fn _new_tile_system(query: Query<&TilePos, Added<TilePos>>) {
     for pos in query.iter() {
         info!("new tile: {:?}", pos);
     }
@@ -257,7 +258,7 @@ fn tilemap_egui_ui_system(
     let mut do_save = false;
     let mut do_load = false;
     let mut do_clear = false;
-    let mut do_spawn_waypoints = false;
+    // let mut do_spawn_waypoints = false;
 
     egui::Window::new("tilemap").show(egui_context.ctx_mut(), |ui| {
         do_clear = ui.button("clear").clicked();
@@ -268,7 +269,7 @@ fn tilemap_egui_ui_system(
         ui.radio_value(&mut interaction_state.click_mode, ClickMode::Fill, "Fill");
         ui.radio_value(&mut interaction_state.click_mode, ClickMode::Probe, "Probe");
 
-        do_spawn_waypoints = ui.button("-> waypoints").clicked();
+        // do_spawn_waypoints = ui.button("-> waypoints").clicked();
     });
 
     let mut do_notify_chunks = false;
@@ -277,23 +278,9 @@ fn tilemap_egui_ui_system(
         do_notify_chunks = true;
     }
     if do_load {
-        let tilemap = io::Tilemap::load("map.yaml");
-        for io::Tile { x, y, t } in tilemap.tiles {
-            let tile_pos = TilePos(x, y);
-            map_query
-                .set_tile(
-                    &mut commands,
-                    tile_pos,
-                    Tile {
-                        texture_index: t,
-                        ..Default::default()
-                    },
-                    0u16,
-                    0u16,
-                )
-                .unwrap();
-            do_notify_chunks = true;
-        }
+        let tilemap = io::Tilemap::load("map.yaml").unwrap();
+        do_notify_chunks = !tilemap.tiles.is_empty();
+        spawn_tilemap(tilemap, &mut map_query, &mut commands);
     }
     if do_save {
         let tilemap = io::Tilemap {
@@ -306,28 +293,65 @@ fn tilemap_egui_ui_system(
                 })
                 .collect(),
         };
-        tilemap.save("map.yaml");
+        tilemap.save("map.yaml").unwrap();
     }
     if do_notify_chunks {
         // re-meshing all chunks seems like the easiest approach since we cannot find out otherwise
         // which chunks are affected by a set_tile / depspawn_layer_tiles operation.
-        for chunk_entity in chunk_query.iter() {
-            map_query.notify_chunk(chunk_entity);
-        }
+        notify_all_chunks(&chunk_query, &mut map_query);
     }
-    if do_spawn_waypoints {
-        for (_entity, tile_pos, tile) in query.iter() {
-            if tile.texture_index == 0 {
-                continue;
-            }
-            commands
-                .spawn()
-                .insert(path::Waypoint)
-                .insert(Transform::from_translation(
-                    pointy_hex_to_pixel(tile_pos.0 as i32, tile_pos.1 as i32)
-                        - Vec3::new(256.0, 256.0, 0.0),
-                ));
+    // if do_spawn_waypoints {
+    //     spawn_waypoints(&query, &mut commands);
+    // }
+}
+
+fn notify_all_chunks(chunk_query: &Query<Entity, With<Chunk>>, map_query: &mut MapQuery) {
+    for chunk_entity in chunk_query.iter() {
+        map_query.notify_chunk(chunk_entity);
+    }
+}
+
+fn spawn_waypoints_system(
+    query: Query<(Entity, &TilePos, &Tile), Added<Tile>>,
+    mut commands: Commands,
+) {
+    for (_entity, tile_pos, tile) in query.iter() {
+        if tile.texture_index == 0 {
+            continue;
         }
+        commands
+            .spawn()
+            .insert(path::Waypoint)
+            .insert(Transform::from_translation(
+                pointy_hex_to_pixel(tile_pos.0 as i32, tile_pos.1 as i32)
+                    - Vec3::new(256.0, 256.0, 0.0),
+            ));
+    }
+}
+
+fn spawn_tilemap(tilemap: io::Tilemap, map_query: &mut MapQuery, commands: &mut Commands) {
+    for io::Tile { x, y, t } in tilemap.tiles {
+        let tile_pos = TilePos(x, y);
+        map_query
+            .set_tile(
+                commands,
+                tile_pos,
+                Tile {
+                    texture_index: t,
+                    ..Default::default()
+                },
+                0u16,
+                0u16,
+            )
+            .unwrap();
+    }
+}
+
+fn autoload_startup_map_system(mut commands: Commands, mut map_query: MapQuery) {
+    if let Ok(tilemap) = io::Tilemap::load("startup_map.yaml") {
+        info!("spawn startup map");
+
+        spawn_tilemap(tilemap, &mut map_query, &mut commands);
     }
 }
 
@@ -337,9 +361,11 @@ impl Plugin for PlayfieldPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InteractionState>()
             .add_startup_system(startup)
+            // .add_startup_system(autoload_startup_map_system)
             .add_system(background_on_click)
             .add_system(set_texture_filters_to_nearest)
-            .add_system(new_tile_system)
-            .add_system(tilemap_egui_ui_system);
+            // .add_system(new_tile_system)
+            .add_system(tilemap_egui_ui_system)
+            .add_system(spawn_waypoints_system);
     }
 }

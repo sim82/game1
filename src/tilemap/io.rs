@@ -1,5 +1,6 @@
 use std::{fs::File, path::Path};
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -16,12 +17,12 @@ pub struct Tilemap {
 }
 
 impl Tilemap {
-    pub fn load<P: AsRef<Path>>(filename: P) -> Self {
-        let file = File::open(filename).unwrap();
-        serde_yaml::from_reader(file).unwrap()
+    pub fn load<P: AsRef<Path>>(filename: P) -> Result<Self> {
+        let file = File::open(filename)?;
+        Ok(serde_yaml::from_reader(file)?)
     }
-    pub fn save<P: AsRef<Path>>(&self, filename: P) {
-        let file = File::create(filename).unwrap();
-        serde_yaml::to_writer(file, &self).unwrap();
+    pub fn save<P: AsRef<Path>>(&self, filename: P) -> Result<()> {
+        let file = File::create(filename)?;
+        Ok(serde_yaml::to_writer(file, &self)?)
     }
 }

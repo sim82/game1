@@ -1587,6 +1587,7 @@ dependencies = [
 name = "game1"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bevy",
  "bevy-inspector-egui",
  "bevy_aseprite",

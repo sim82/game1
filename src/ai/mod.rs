@@ -18,8 +18,8 @@ impl Plugin for AiPlugin {
         use self::{
             actions::{
                 dodge_pew::dodge_pew_action_system, follow::follow_action_system,
-                follow_path::follow_path_action_system, jiggle_around::jiggle_around_action_system,
-                run_away::run_away_action_system,
+                follow_path::follow_path_action_system, goto_medikit::goto_medikit_action_system,
+                jiggle_around::jiggle_around_action_system, run_away::run_away_action_system,
             },
             scorers::{
                 can_follow_path::can_follow_path_scorer_system,
@@ -35,6 +35,7 @@ impl Plugin for AiPlugin {
             .add_system_to_stage(BigBrainStage::Actions, follow_action_system)
             .add_system_to_stage(BigBrainStage::Actions, jiggle_around_action_system)
             .add_system_to_stage(BigBrainStage::Actions, dodge_pew_action_system)
+            .add_system_to_stage(BigBrainStage::Actions, goto_medikit_action_system)
             // .add_system_to_stage(BigBrainStage::Actions, follow_path_action_system)
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)

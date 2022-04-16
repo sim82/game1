@@ -182,7 +182,7 @@ fn find_path_system_par(
     if !query.is_empty() {
         info!("path find (par): {:?}", start.elapsed());
     }
-    // gather & distribute results to target entities (sidenote: I love rust)
+    // gather & distribute results to target entities (munching up the mutex along the way... sidenote: I love rust)
     if let Ok(out) = out.into_inner() {
         for (target, path, path_query_entity) in out {
             commands
