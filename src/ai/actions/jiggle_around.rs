@@ -3,6 +3,8 @@ use big_brain::prelude::*;
 
 use crate::movement::crab_move::{CrabMoveDirection, CrabMoveWalker};
 
+use super::DebugAction;
+
 #[derive(Component, Debug, Clone)]
 pub struct JiggleAround {
     left: f32,
@@ -19,11 +21,16 @@ impl Default for JiggleAround {
 }
 
 pub fn jiggle_around_action_system(
+    mut commands: Commands,
     mut walkers: Query<&mut CrabMoveWalker>,
     time: Res<Time>,
     mut query: Query<(&Actor, &mut ActionState, &mut JiggleAround)>,
 ) {
     for (Actor(actor), mut state, mut jiggle_around) in query.iter_mut() {
+        commands
+            .entity(*actor)
+            .insert(DebugAction::new("jiggle around", state.clone()));
+
         match *state {
             ActionState::Requested => *state = ActionState::Executing,
             ActionState::Executing => {

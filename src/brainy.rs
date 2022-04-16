@@ -9,6 +9,7 @@ use crate::{
             dodge_pew::DodgePew, follow::Follow, follow_path::FollowPath,
             goto_medikit::GotoMedikit, jiggle_around::JiggleAround, run_away::RunAway,
         },
+        inspect::AiInspectTarget,
         scorers::{
             can_follow_path::CanFollowPath, curiosity::Curiousity, fear::Fear,
             health_low::LowHealth, pew_incoming::PewIncoming,
@@ -27,7 +28,7 @@ mod tune {
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
 }
 
-pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
+pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: bool) {
     let mut rng = rand::thread_rng();
     let dist = rand_distr::Normal::new(0.8f32, 0.2f32).unwrap();
 
@@ -35,20 +36,20 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
 
     // let _curious_max = curious_min + rng.sample(dist);
 
-    commands
-        .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Ferris::sprite(),
-            animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
-            transform: Transform {
-                scale: Vec3::splat(1.),
-                translation: pos,
-                ..Default::default()
-            },
+    let mut entity_commands = commands.spawn_bundle(AsepriteBundle {
+        aseprite: sprites::Ferris::sprite(),
+        animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+        transform: Transform {
+            scale: Vec3::splat(1.),
+            translation: pos,
             ..Default::default()
-        })
-        // .insert(VelocityWalker {
-        //     velocity: Vec3::ZERO,
-        // })
+        },
+        ..Default::default()
+    });
+    // .insert(VelocityWalker {
+    //     velocity: Vec3::ZERO,
+    // })
+    entity_commands
         .insert(Zappable)
         .insert(CrabMoveWalker::default())
         .insert(TargetDistanceProbe { d: 0.0 })
@@ -57,7 +58,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 .picker(FirstToScore {
                     threshold: rng.sample(dist).clamp(0.0, 1.0),
                 })
-                // .when(PewIncoming::build(), DodgePew::build())
+                .when(PewIncoming::build(), DodgePew::build())
                 .when(LowHealth::build(), GotoMedikit::default())
                 .when(CanFollowPath::default(), FollowPath::default())
                 .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
@@ -70,4 +71,8 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3) {
                 .otherwise(JiggleAround::default()),
         )
         .insert(HealthPoints { health: 50 });
+
+    if inspect_target {
+        entity_commands.insert(AiInspectTarget);
+    }
 }

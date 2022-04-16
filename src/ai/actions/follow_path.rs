@@ -20,6 +20,7 @@ pub fn follow_path_action_system(
     waypoint_query: Query<&Transform, With<Waypoint>>,
 ) {
     for (action_entity, Actor(entity), mut action_state, mut follow_path) in query.iter_mut() {
+        // commands
         if let Ok((Transform { translation, .. }, mut crab_move_walker, waypoint_path)) =
             walkers.get_mut(*entity)
         {

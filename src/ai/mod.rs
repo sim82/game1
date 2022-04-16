@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 use big_brain::BigBrainStage;
 
+use crate::ai::inspect::AiInspectState;
+
 pub mod actions;
 pub mod diagnostics;
+pub mod inspect;
 pub mod scorers;
 pub mod util;
+
 pub struct AiPlugin;
 
 #[derive(Component, Reflect, Default)]
@@ -30,6 +34,8 @@ impl Plugin for AiPlugin {
 
         app.register_type::<util::TargetDistanceProbe>()
             .register_type::<HealthPoints>()
+            .add_system(inspect::ai_inspect_egui_system)
+            .init_resource::<AiInspectState>()
             .add_system_to_stage(CoreStage::PostUpdate, util::measure_target_distance_system)
             .add_system_to_stage(BigBrainStage::Actions, run_away_action_system)
             .add_system_to_stage(BigBrainStage::Actions, follow_action_system)

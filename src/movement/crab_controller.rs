@@ -17,7 +17,7 @@ mod tune {
 #[component(storage = "SparseSet")]
 
 pub struct CrabFollowPath {
-    next_step: usize,
+    pub next_step: usize,
 }
 
 #[derive(Component, Default)]

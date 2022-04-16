@@ -115,7 +115,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
-    for _ in 0..1 {
+    for i in 0..1 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -127,6 +127,7 @@ pub fn setup(mut commands: Commands) {
                 rng.sample(dist) + 400.0 / 4.0,
                 5.0,
             ),
+            i == 0,
         );
     }
 
@@ -267,7 +268,7 @@ fn apply_input(
 
 pub fn spawn_ferris_on_click(mut commands: Commands, mut click_events: EventReader<ClickEvent>) {
     for event in click_events.iter() {
-        game1::brainy::spawn_brainy_ferris(&mut commands, event.pos);
+        game1::brainy::spawn_brainy_ferris(&mut commands, event.pos, false);
     }
 }
 

@@ -1,0 +1,77 @@
+use std::collections::VecDeque;
+
+use bevy::prelude::*;
+use bevy_egui::{
+    egui::{self, Modifiers, RichText},
+    EguiContext,
+};
+
+use crate::{
+    movement::crab_controller::{CrabEvade, CrabFollowPath},
+    path::WaypointPath,
+};
+
+use super::{actions::DebugAction, HealthPoints};
+
+#[derive(Component)]
+pub struct AiInspectTarget;
+
+pub struct AiInspectState {
+    debug_action: VecDeque<DebugAction>,
+    timer: Timer,
+}
+impl Default for AiInspectState {
+    fn default() -> Self {
+        Self {
+            debug_action: Default::default(),
+            timer: Timer::from_seconds(1.0, true),
+        }
+    }
+}
+
+pub fn ai_inspect_egui_system(
+    // mut commands: Commands,
+    mut egui_context: ResMut<EguiContext>,
+    time: Res<Time>,
+    mut state: ResMut<AiInspectState>,
+    follow_path_query: Query<(&CrabFollowPath, &WaypointPath), With<AiInspectTarget>>,
+    evade_query: Query<&CrabEvade>,
+    health_query: Query<&HealthPoints, With<AiInspectTarget>>,
+    action_query: Query<&DebugAction, (With<AiInspectTarget>, Changed<DebugAction>)>,
+) {
+    for action in action_query.iter() {
+        if Some(action) != state.debug_action.back() {
+            state.debug_action.push_back(action.clone());
+        }
+        if state.debug_action.len() > 20 {
+            state.debug_action.pop_front();
+        }
+    }
+
+    state.timer.tick(time.delta());
+    if state.timer.just_finished() && state.debug_action.len() > 1 {
+        state.debug_action.pop_front();
+    }
+
+    egui::Window::new("ai inspect").show(egui_context.ctx_mut(), |ui| {
+        if let Ok(health_points) = health_query.get_single() {
+            ui.label(format!("health: {}", health_points.health));
+        }
+
+        if let Ok((follow, waypoint_path)) = follow_path_query.get_single() {
+            ui.label(format!(
+                "follow path: len: {} next: {}",
+                waypoint_path.waypoints.len(),
+                follow.next_step
+            ));
+        }
+
+        if evade_query.get_single().is_ok() {
+            ui.label(RichText::new("EVADE!").color(egui::Color32::RED));
+        }
+
+        for action in state.debug_action.iter() {
+            ui.label(format!("action: {} {:?}", action.action, action.state));
+        }
+    });
+}

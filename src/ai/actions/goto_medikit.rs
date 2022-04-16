@@ -3,9 +3,14 @@ use big_brain::prelude::*;
 
 use crate::{
     item::medikit::Medikit,
-    movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
+    movement::{
+        crab_controller::CrabFollowPath,
+        crab_move::{CrabMoveDirection, CrabMoveWalker},
+    },
     path::PathQuery,
 };
+
+use super::DebugAction;
 
 #[derive(Component, Debug, Default, Clone)]
 pub struct GotoMedikit {
@@ -19,6 +24,10 @@ pub fn goto_medikit_action_system(
     medikit_query: Query<&Transform, With<Medikit>>,
 ) {
     for (Actor(actor), mut state, mut goto_medikit) in query.iter_mut() {
+        commands
+            .entity(*actor)
+            .insert(DebugAction::new("goto medikit", state.clone()));
+
         let (
             Transform {
                 translation: actor_pos,
@@ -58,6 +67,7 @@ pub fn goto_medikit_action_system(
                 // walker.direction = CrabMoveDirection::find_nearest(tv);
             }
             ActionState::Cancelled => {
+                commands.entity(*actor).remove::<CrabFollowPath>();
                 *state = ActionState::Failure;
             }
             _ => {}
