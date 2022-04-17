@@ -5,7 +5,13 @@ use bevy_ecs_tilemap::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
 
-use crate::{debug::debug_draw_cross, path, pointer::ClickEvent};
+use crate::{
+    ai::inspect::AiInspectTarget,
+    debug::debug_draw_cross,
+    movement::control::MovementGoToPoint,
+    path::{self, PathQuery},
+    pointer::ClickEvent,
+};
 pub mod io;
 
 // mod helpers;
@@ -130,6 +136,7 @@ fn background_on_click(
     mut debug_lines: ResMut<DebugLines>,
     interaction_state: Res<InteractionState>,
     mut map_query: MapQuery,
+    ai_inspect_query: Query<(Entity, &Transform), With<AiInspectTarget>>,
 ) {
     let map_id = 0u16;
     let layer_id = 0u16;
@@ -204,6 +211,13 @@ fn background_on_click(
                     - Vec3::new(256.0, 256.0, 0.0);
                 debug_draw_cross(&mut debug_lines, p, Some(2.0));
             }
+            ClickMode::GoThere => {
+                if let Ok((target, Transform { translation: _, .. })) =
+                    ai_inspect_query.get_single()
+                {
+                    commands.entity(target).insert(MovementGoToPoint(event.pos));
+                }
+            }
         }
         // map_query.get_
         // for n in map_query.get_tile_neighbors(position, 0u16, 0u16) {
@@ -234,6 +248,7 @@ enum ClickMode {
     Wall,
     Fill,
     Probe,
+    GoThere,
 }
 
 impl Default for ClickMode {
@@ -268,6 +283,11 @@ fn tilemap_egui_ui_system(
         ui.radio_value(&mut interaction_state.click_mode, ClickMode::Wall, "Wall");
         ui.radio_value(&mut interaction_state.click_mode, ClickMode::Fill, "Fill");
         ui.radio_value(&mut interaction_state.click_mode, ClickMode::Probe, "Probe");
+        ui.radio_value(
+            &mut interaction_state.click_mode,
+            ClickMode::GoThere,
+            "Go there",
+        );
 
         // do_spawn_waypoints = ui.button("-> waypoints").clicked();
     });

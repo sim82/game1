@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::movement::crab_controller::CrabEvade;
+use crate::movement::control::MovementEvade;
 
 use super::DebugAction;
 
@@ -35,12 +35,12 @@ pub fn dodge_pew_action_system(
             .insert(DebugAction::new("dodge pew", state.clone()));
         match *state {
             ActionState::Requested => {
-                commands.entity(*actor).insert(CrabEvade::default());
+                commands.entity(*actor).insert(MovementEvade::default());
                 *state = ActionState::Executing;
             }
             ActionState::Executing => {}
             ActionState::Cancelled => {
-                commands.entity(*actor).remove::<CrabEvade>();
+                commands.entity(*actor).remove::<MovementEvade>();
                 *state = ActionState::Failure;
             }
             _ => {}

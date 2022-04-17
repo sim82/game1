@@ -8,7 +8,7 @@ use petgraph::graphmap::UnGraphMap;
 
 use crate::{
     debug::{debug_draw_cross, debug_draw_line},
-    movement::zap::Zappable,
+    movement::{crab_controller::CrabFollowPath, zap::Zappable},
     InputTarget,
 };
 
@@ -73,10 +73,10 @@ fn update_graph_system(
 }
 
 #[derive(Component)]
+#[component(storage = "SparseSet")]
 pub struct PathQuery {
     pub start: Vec3,
     pub end: Vec3,
-    pub target: Entity,
 }
 
 #[derive(Component, Debug, Reflect)]
@@ -117,9 +117,8 @@ fn _find_path_system(
             );
             if let Some(res) = res {
                 commands
-                    .entity(path_query.target)
-                    .insert(WaypointPath { waypoints: res.0 })
-                    .insert(crate::movement::crab_controller::CrabFollowPath::default());
+                    .entity(path_query_entity)
+                    .insert(WaypointPath { waypoints: res.0 });
             }
         }
         commands.entity(path_query_entity).despawn();
@@ -138,7 +137,7 @@ fn find_path_system_par(
     query: Query<(Entity, &PathQuery), Added<PathQuery>>,
     waypoint_query: Query<(Entity, &Transform), With<Waypoint>>,
 ) {
-    let out = Mutex::new(Vec::<(Entity, WaypointPath, Entity)>::new());
+    let out = Mutex::new(Vec::<(WaypointPath, Entity)>::new());
     let start = bevy::utils::Instant::now();
     // scatter: do actual path finding in parallel
     query.par_for_each(&pool, 16, |(path_query_entity, path_query)| {
@@ -174,7 +173,7 @@ fn find_path_system_par(
             if let Some(res) = res {
                 let waypoint_path = WaypointPath { waypoints: res.0 };
                 if let Ok(mut out) = out.lock() {
-                    out.push((path_query.target, waypoint_path, path_query_entity));
+                    out.push((waypoint_path, path_query_entity));
                 }
             }
         }
@@ -184,14 +183,11 @@ fn find_path_system_par(
     }
     // gather & distribute results to target entities (munching up the mutex along the way... sidenote: I love rust)
     if let Ok(out) = out.into_inner() {
-        for (target, path, path_query_entity) in out {
-            commands
-                .entity(target)
-                .insert(path)
-                .insert(crate::movement::crab_controller::CrabFollowPath::default());
+        for (path, path_query_entity) in out {
+            commands.entity(path_query_entity).insert(path);
             // cleanup path query in this loop as well. Not sure if this is better than iterating over query
             // again, but less code is more good.
-            commands.entity(path_query_entity).despawn();
+            commands.entity(path_query_entity).remove::<PathQuery>();
         }
     }
 
@@ -275,11 +271,13 @@ fn path_egui_ui_system(
                 },
             ) in ferris_query.iter()
             {
-                commands.spawn().insert(PathQuery {
-                    start: *ferris_pos,
-                    end: *player_pos,
-                    target: ferris_entity,
-                });
+                commands
+                    .entity(ferris_entity)
+                    .insert(PathQuery {
+                        start: *ferris_pos,
+                        end: *player_pos,
+                    })
+                    .insert(CrabFollowPath::default());
             }
         }
     }

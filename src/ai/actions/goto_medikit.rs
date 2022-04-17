@@ -1,11 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{
-    item::medikit::Medikit,
-    movement::{crab_controller::CrabFollowPath, crab_move::CrabMoveWalker},
-    path::PathQuery,
-};
+use crate::{item::medikit::Medikit, movement::control::MovementGoToPoint};
 
 use super::DebugAction;
 
@@ -17,7 +13,7 @@ pub struct GotoMedikit {
 pub fn goto_medikit_action_system(
     mut commands: Commands,
     mut query: Query<(&Actor, &mut ActionState, &mut GotoMedikit)>,
-    mut actor_query: Query<(&Transform, &mut CrabMoveWalker)>,
+    mut actor_query: Query<&Transform>,
     medikit_query: Query<&Transform, With<Medikit>>,
 ) {
     for (Actor(actor), mut state, mut goto_medikit) in query.iter_mut() {
@@ -25,13 +21,10 @@ pub fn goto_medikit_action_system(
             .entity(*actor)
             .insert(DebugAction::new("goto medikit", state.clone()));
 
-        let (
-            Transform {
-                translation: actor_pos,
-                ..
-            },
-            mut _walker,
-        ) = actor_query.get_mut(*actor).unwrap();
+        let Transform {
+            translation: actor_pos,
+            ..
+        } = actor_query.get(*actor).unwrap();
         match *state {
             // let mut nearest_dist
             ActionState::Init => {
@@ -48,11 +41,11 @@ pub fn goto_medikit_action_system(
                 if let Some(best_pos) = best_pos {
                     goto_medikit.pos = best_pos;
                     info!("goto medikit: pos: {:?}", goto_medikit.pos);
-                    commands.spawn().insert(PathQuery {
-                        start: *actor_pos,
-                        end: best_pos,
-                        target: *actor,
-                    });
+                    // commands.entity(*actor).insert(PathQuery {
+                    //     start: *actor_pos,
+                    //     end: best_pos,
+                    // });
+                    commands.entity(*actor).insert(MovementGoToPoint(best_pos));
                     *state = ActionState::Executing
                 } else {
                     info!("failed to find medikit");
@@ -64,7 +57,7 @@ pub fn goto_medikit_action_system(
                 // walker.direction = CrabMoveDirection::find_nearest(tv);
             }
             ActionState::Cancelled => {
-                commands.entity(*actor).remove::<CrabFollowPath>();
+                commands.entity(*actor).remove::<MovementGoToPoint>();
                 *state = ActionState::Failure;
             }
             _ => {}

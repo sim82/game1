@@ -8,7 +8,8 @@ use bevy_egui::{
 
 use crate::{
     movement::{
-        crab_controller::{CrabEvade, CrabFollowPath},
+        control::{MovementEvade, MovementGoToPoint},
+        crab_controller::CrabFollowPath,
         zap::BeingZapped,
     },
     path::WaypointPath,
@@ -39,10 +40,11 @@ pub fn ai_inspect_egui_system(
     time: Res<Time>,
     mut state: ResMut<AiInspectState>,
     follow_path_query: Query<(&CrabFollowPath, &WaypointPath), With<AiInspectTarget>>,
-    evade_query: Query<&CrabEvade>,
+    evade_query: Query<&MovementEvade>,
     health_query: Query<&HealthPoints, With<AiInspectTarget>>,
     action_query: Query<&DebugAction, (With<AiInspectTarget>, Changed<DebugAction>)>,
     zapped_query: Query<(), (With<BeingZapped>, With<AiInspectTarget>)>,
+    goto_point_query: Query<&MovementGoToPoint>,
 ) {
     for action in action_query.iter() {
         if Some(action) != state.debug_action.back() {
@@ -69,6 +71,10 @@ pub fn ai_inspect_egui_system(
                 waypoint_path.waypoints.len(),
                 follow.next_step
             ));
+        }
+
+        if let Ok(MovementGoToPoint(pos)) = goto_point_query.get_single() {
+            ui.label(format!("goto point: {:?}", pos));
         }
 
         if evade_query.get_single().is_ok() {

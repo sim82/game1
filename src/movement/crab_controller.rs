@@ -1,10 +1,14 @@
 use crate::{
     movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
-    path::{Waypoint, WaypointPath},
+    path::{PathQuery, Waypoint, WaypointPath},
 };
 
 use bevy::prelude::*;
 use rand::Rng;
+
+use super::control::{MovementEvade, MovementGoToPoint};
+
+// implementation of the abstract movement controls for CrabMoveWalker
 
 mod tune {
     pub const CHANGE_DIRECTION_TIMEOUT: f32 = 0.5;
@@ -17,15 +21,9 @@ pub struct CrabFollowPath {
     pub next_step: usize,
 }
 
-#[derive(Component, Default)]
-#[component(storage = "SparseSet")]
-pub struct CrabEvade {
-    time_left_before_change: f32,
-}
-
-pub fn crab_override_direction_system(
+pub fn crab_evade_system(
     time: Res<Time>,
-    mut query: Query<(&mut CrabMoveWalker, &mut CrabEvade)>,
+    mut query: Query<(&mut CrabMoveWalker, &mut MovementEvade)>,
 ) {
     for (mut walker, mut dodge_pew) in query.iter_mut() {
         dodge_pew.time_left_before_change -= time.delta_seconds();
@@ -54,6 +52,37 @@ pub fn crab_override_direction_system(
     }
 }
 
+#[allow(clippy::type_complexity)]
+pub fn crab_update_path_system(
+    mut commands: Commands,
+    query: Query<
+        (Entity, &Transform, &MovementGoToPoint),
+        (
+            Without<CrabFollowPath>,
+            Without<PathQuery>,
+            With<CrabMoveWalker>,
+        ),
+    >,
+) {
+    for (
+        entity,
+        Transform {
+            translation: start, ..
+        },
+        MovementGoToPoint(end),
+    ) in query.iter()
+    {
+        info!("goto point witout path. update");
+        commands
+            .entity(entity)
+            .insert(PathQuery {
+                start: *start,
+                end: *end,
+            })
+            .insert(CrabFollowPath::default());
+    }
+}
+
 pub fn crab_follow_path_system(
     mut commands: Commands,
     mut query: Query<
@@ -64,7 +93,7 @@ pub fn crab_follow_path_system(
             &WaypointPath,
             &Transform,
         ),
-        Without<CrabEvade>,
+        Without<MovementEvade>,
     >,
     waypoint_query: Query<&Transform, With<Waypoint>>,
 ) {
@@ -76,25 +105,6 @@ pub fn crab_follow_path_system(
         Transform { translation, .. },
     ) in query.iter_mut()
     {
-        // let translation = transform.translation;
-        // if started {
-        //     let start_point = path
-        //         .waypoints
-        //         .iter()
-        //         .enumerate()
-        //         .map(|(i, wp_entity)| {
-        //             let Transform {
-        //                 translation: wp_pos,
-        //                 ..
-        //             } = waypoint_query.get(*wp_entity).unwrap();
-        //             (i, (translation - *wp_pos).length())
-        //         })
-        //         .min_by(|(_, l), (_, r)| l.partial_cmp(r).unwrap())
-        //         .unwrap()
-        //         .0;
-        //     info!("follow path started at {}", start_point);
-        //     *next = start_point;
-        // }
         if follow_path.next_step >= waypoints.len() {
             commands.entity(entity).remove::<CrabFollowPath>();
             continue;
@@ -122,104 +132,3 @@ pub fn crab_follow_path_system(
         }
     }
 }
-
-// pub enum CrabMovement {
-//     Directional(CrabMoveDirection),
-//     FollowPath { next: usize, path: WaypointPath },
-// }
-
-// impl CrabMovement {
-//     pub fn exec(
-//         &mut self,
-//         started: bool,
-//         walker: &mut CrabMoveWalker,
-//         transform: &Transform,
-//         waypoint_query: &Query<&Transform, With<Waypoint>>,
-//     ) -> bool {
-//         match self {
-//             CrabMovement::Directional(direction) => {
-//                 walker.direction = *direction;
-//                 false
-//             }
-//             CrabMovement::FollowPath { next, path } => {
-//                 let translation = transform.translation;
-//                 if started {
-//                     let start_point = path
-//                         .waypoints
-//                         .iter()
-//                         .enumerate()
-//                         .map(|(i, wp_entity)| {
-//                             let Transform {
-//                                 translation: wp_pos,
-//                                 ..
-//                             } = waypoint_query.get(*wp_entity).unwrap();
-//                             (i, (translation - *wp_pos).length())
-//                         })
-//                         .min_by(|(_, l), (_, r)| l.partial_cmp(r).unwrap())
-//                         .unwrap()
-//                         .0;
-//                     info!("follow path started at {}", start_point);
-//                     *next = start_point;
-//                 }
-//                 if *next >= path.waypoints.len() {
-//                     return true;
-//                 }
-//                 let min_dist = 6.0;
-//                 if let Ok(Transform {
-//                     translation: waypoint_translation,
-//                     ..
-//                 }) = waypoint_query.get(path.waypoints[*next])
-//                 {
-//                     let d = *waypoint_translation - translation;
-//                     let tv = d.normalize();
-//                     walker.direction = CrabMoveDirection::find_nearest(tv);
-//                     info!(
-//                         "follow path progress: {} {} {:?}",
-//                         next,
-//                         d.length(),
-//                         waypoint_translation
-//                     );
-
-//                     if d.length() < min_dist {
-//                         *next += 1;
-//                     }
-//                 }
-//                 false
-//             }
-//         }
-//     }
-// }
-
-// #[derive(Component)]
-// pub struct CrabController {
-//     movements: Vec<(MovementPriority, Entity, CrabMovement)>,
-//     active_movement: Option<Entity>,
-// }
-
-// impl CrabController {
-//     pub fn add_movement(
-//         &mut self,
-//         priority: MovementPriority,
-//         movement: CrabMovement,
-//         owner: Entity,
-//     ) {
-//         self.movements.push((priority, owner, movement));
-//     }
-// }
-
-// pub fn crab_controller_update_system(
-//     mut query: Query<(&mut CrabController, &mut CrabMoveWalker, &Transform)>,
-//     waypoints_query: Query<&Transform, With<Waypoint>>,
-// ) {
-//     for (mut controller, mut walker, transform) in query.iter_mut() {
-//         controller.movements.sort_by_key(|m| m.0);
-//         let next_movement = controller.movements.last().map(|(_, entity, _)| *entity);
-//         let start = controller.active_movement != next_movement;
-
-//         controller.active_movement = next_movement;
-
-//         if let Some((_, _, movement)) = controller.movements.last_mut() {
-//             movement.exec(start, &mut *walker, transform, &waypoints_query);
-//         }
-//     }
-// }

@@ -51,25 +51,28 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
     entity_commands
         .insert(Zappable)
         .insert(CrabMoveWalker::default())
-        .insert(TargetDistanceProbe { d: 0.0 })
-        .insert(
-            Thinker::build()
-                .picker(FirstToScore {
-                    threshold: rng.sample(dist).clamp(0.0, 1.0),
-                })
-                .when(PewIncoming::build(), DodgePew::build())
-                .when(LowHealth::build(), GotoMedikit::default())
-                .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
-                .when(
-                    Curiousity::build().within(tune::CURIOSITY_DISTANCE),
-                    Follow {
-                        until: tune::FOLLOW_MIN_DISTANCE,
-                    },
-                )
-                .otherwise(JiggleAround::default()),
-        )
-        .insert(HealthPoints { health: 50 });
+        .insert(TargetDistanceProbe { d: 0.0 });
 
+    if !false {
+        entity_commands
+            .insert(
+                Thinker::build()
+                    .picker(FirstToScore {
+                        threshold: rng.sample(dist).clamp(0.0, 1.0),
+                    })
+                    // .when(PewIncoming::build(), DodgePew::build())
+                    .when(LowHealth::build(), GotoMedikit::default())
+                    .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
+                    .when(
+                        Curiousity::build().within(tune::CURIOSITY_DISTANCE),
+                        Follow {
+                            until: tune::FOLLOW_MIN_DISTANCE,
+                        },
+                    )
+                    .otherwise(JiggleAround::default()),
+            )
+            .insert(HealthPoints { health: 50 });
+    }
     if inspect_target {
         entity_commands.insert(AiInspectTarget);
     }
