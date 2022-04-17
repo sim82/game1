@@ -3,7 +3,7 @@ use crate::{
     path::{PathQuery, Waypoint, WaypointPath},
 };
 
-use bevy::prelude::*;
+use bevy::{ecs::system::Remove, prelude::*};
 use rand::Rng;
 
 use super::control::{MovementEvade, MovementGoToPoint};
@@ -72,7 +72,14 @@ pub fn crab_update_path_system(
         MovementGoToPoint(end),
     ) in query.iter()
     {
-        info!("goto point witout path. update");
+        if (*start - *end).length() < 10.0 {
+            commands
+                .entity(entity)
+                .remove::<MovementGoToPoint>()
+                .remove::<CrabFollowPath>();
+            continue;
+        }
+        // info!("goto point witout path. update");
         commands
             .entity(entity)
             .insert(PathQuery {

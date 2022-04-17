@@ -16,6 +16,7 @@ use crate::{
         util::TargetDistanceProbe,
         HealthPoints,
     },
+    item::ItemContactProbe,
     movement::{crab_move::CrabMoveWalker, walk::VelocityWalker, zap::Zappable},
     sprites,
     ui::TrackingOverlayTarget,
@@ -29,8 +30,14 @@ mod tune {
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: bool) {
     let mut rng = rand::thread_rng();
-    let dist = rand_distr::Normal::new(0.8f32, 0.2f32).unwrap();
 
+    let threshold = if inspect_target {
+        // make first brainy ferris deterministic
+        0.8
+    } else {
+        let dist = rand_distr::Normal::new(0.8f32, 0.2f32).unwrap();
+        rng.sample(dist).clamp(0.0, 1.0)
+    };
     // let curious_min = rng.sample(dist);
 
     // let _curious_max = curious_min + rng.sample(dist);
@@ -51,16 +58,15 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
     entity_commands
         .insert(Zappable)
         .insert(CrabMoveWalker::default())
-        .insert(TargetDistanceProbe { d: 0.0 });
+        .insert(TargetDistanceProbe { d: 0.0 })
+        .insert(ItemContactProbe::default());
 
     if !false {
         entity_commands
             .insert(
                 Thinker::build()
-                    .picker(FirstToScore {
-                        threshold: rng.sample(dist).clamp(0.0, 1.0),
-                    })
-                    // .when(PewIncoming::build(), DodgePew::build())
+                    .picker(FirstToScore { threshold })
+                    .when(PewIncoming::build(), DodgePew::build())
                     .when(LowHealth::build(), GotoMedikit::default())
                     .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
                     .when(

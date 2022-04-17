@@ -7,7 +7,7 @@ use bevy_egui::EguiPlugin;
 use big_brain::BigBrainPlugin;
 use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin, HealthPoints},
-    item::{medikit::Medikit, ItemPlugin},
+    item::{medikit::Medikit, ItemContactProbe, ItemPlugin},
     movement::{
         crab_move::{CrabMoveDirection, CrabMoveWalker},
         walk::VelocityWalker,
@@ -24,7 +24,10 @@ use rand::{thread_rng, Rng};
 
 fn main() {
     let mut app = App::new();
-
+    app.insert_resource(WindowDescriptor {
+        vsync: true,
+        ..Default::default()
+    });
     //
     // external plugins
     //
@@ -115,7 +118,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
-    for i in 0..1 {
+    for i in 0..10 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -146,11 +149,8 @@ pub fn setup(mut commands: Commands) {
         .insert(InputTarget)
         .insert(CrabMoveWalker::default())
         .insert(TargetFlag)
-        .insert(HealthPoints{health: 25})
-        // .insert(TrackingOverlayTarget {
-        //     text: "meeeeeep".into(),
-        // })
-        ;
+        .insert(HealthPoints { health: 25 })
+        .insert(ItemContactProbe::default());
 
     commands
         .spawn_bundle(AsepriteBundle {

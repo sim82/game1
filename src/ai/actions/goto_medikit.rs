@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{item::medikit::Medikit, movement::control::MovementGoToPoint};
+use crate::{
+    item::medikit::Medikit,
+    movement::{control::MovementGoToPoint, crab_controller::CrabFollowPath},
+};
 
 use super::DebugAction;
 
@@ -15,6 +18,7 @@ pub fn goto_medikit_action_system(
     mut query: Query<(&Actor, &mut ActionState, &mut GotoMedikit)>,
     mut actor_query: Query<&Transform>,
     medikit_query: Query<&Transform, With<Medikit>>,
+    go_to_point_query: Query<(), With<MovementGoToPoint>>,
 ) {
     for (Actor(actor), mut state, mut goto_medikit) in query.iter_mut() {
         commands
@@ -55,9 +59,15 @@ pub fn goto_medikit_action_system(
             ActionState::Executing => {
                 // let tv = (goto_medikit.pos - *actor_pos).normalize();
                 // walker.direction = CrabMoveDirection::find_nearest(tv);
+                if go_to_point_query.get(*actor).is_err() {
+                    *state = ActionState::Success;
+                }
             }
             ActionState::Cancelled => {
-                commands.entity(*actor).remove::<MovementGoToPoint>();
+                commands
+                    .entity(*actor)
+                    .remove::<MovementGoToPoint>()
+                    .remove::<CrabFollowPath>();
                 *state = ActionState::Failure;
             }
             _ => {}

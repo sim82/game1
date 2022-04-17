@@ -183,6 +183,7 @@ fn find_path_system_par(
     }
     // gather & distribute results to target entities (munching up the mutex along the way... sidenote: I love rust)
     if let Ok(out) = out.into_inner() {
+        // info!("num = {}", out.len());
         for (path, path_query_entity) in out {
             commands.entity(path_query_entity).insert(path);
             // cleanup path query in this loop as well. Not sure if this is better than iterating over query
