@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle};
+use bevy_egui::{egui, EguiContext};
 use big_brain::prelude::*;
 use rand::{prelude::SliceRandom, Rng};
 
@@ -21,6 +22,7 @@ use crate::{
     path::Waypoint,
     sprites,
     ui::TrackingOverlayTarget,
+    Despawn,
 };
 
 mod tune {
@@ -86,30 +88,59 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
     }
 }
 
+pub struct SpawnFerrisState {
+    ferris_count: usize,
+}
+
+impl Default for SpawnFerrisState {
+    fn default() -> Self {
+        Self { ferris_count: 1 }
+    }
+}
+
 pub fn spawn_brainy_ferris_system(
     mut commands: Commands,
-    query: Query<Entity, With<Zappable>>,
+    mut egui_context: ResMut<EguiContext>,
+    mut state: Local<SpawnFerrisState>,
+    mut query: Query<(Entity, &mut HealthPoints), With<Zappable>>,
     waypoints_query: Query<&Transform, With<Waypoint>>,
 ) {
+    egui::Window::new("ferris").show(egui_context.ctx_mut(), |ui| {
+        ui.add(egui::Slider::new(&mut state.ferris_count, 1..=100));
+    });
+
     let count = query.iter().count();
-    if count >= tune::BRAINY_FERRIS_COUNT {
-        return;
-    }
 
-    let num_create = tune::BRAINY_FERRIS_COUNT - count;
-    let waypoint_pos = waypoints_query
-        .iter()
-        .map(|transform| transform.translation)
-        .collect::<Vec<_>>();
+    #[allow(clippy::comparison_chain)]
+    match count.cmp(&state.ferris_count) {
+        std::cmp::Ordering::Less => {
+            let num_create = state.ferris_count - count;
+            let waypoint_pos = waypoints_query
+                .iter()
+                .map(|transform| transform.translation)
+                .collect::<Vec<_>>();
 
-    if waypoint_pos.len() < num_create {
-        return;
-    }
+            if waypoint_pos.len() < num_create {
+                return;
+            }
 
-    let mut rng = rand::thread_rng();
+            let mut rng = rand::thread_rng();
 
-    for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
-        // FIXME: hardcoded z offset is crap
-        spawn_brainy_ferris(&mut commands, *pos + Vec3::Z * 5.0, false);
+            for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
+                // FIXME: hardcoded z offset is crap
+                spawn_brainy_ferris(&mut commands, *pos + Vec3::Z * 5.0, false);
+            }
+        }
+
+        std::cmp::Ordering::Greater => {
+            let num_despawn = 10.min(count - state.ferris_count);
+
+            for (entity, mut health_points) in query.iter_mut().take(num_despawn) {
+                // commands.entity(entity).insert(Despawn::ThisFrame);
+                health_points.health = 0;
+            }
+        }
+
+        _ => (),
     }
 }
