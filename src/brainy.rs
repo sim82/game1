@@ -27,7 +27,7 @@ mod tune {
     pub const FEAR_DISTANCE: f32 = 50.0;
     pub const CURIOSITY_DISTANCE: f32 = 150.0;
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
-    pub const BRAINY_FERRIS_COUNT: usize = 100;
+    pub const BRAINY_FERRIS_COUNT: usize = 1;
 }
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: bool) {

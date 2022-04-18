@@ -10,7 +10,7 @@ use crate::{
     movement::{
         control::{MovementEvade, MovementGoToPoint},
         crab_controller::CrabFollowPath,
-        zap::BeingZapped,
+        zap::{BeingZapped, Zappable},
     },
     path::WaypointPath,
 };
@@ -33,6 +33,18 @@ impl Default for AiInspectState {
     }
 }
 
+pub fn ai_inspect_pick_target(
+    mut commands: Commands,
+    target_query: Query<(), With<AiInspectTarget>>,
+    candiate_query: Query<Entity, With<Zappable>>,
+) {
+    if target_query.is_empty() {
+        if let Some(entity) = candiate_query.iter().next() {
+            commands.entity(entity).insert(AiInspectTarget);
+        }
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn ai_inspect_egui_system(
     // mut commands: Commands,
@@ -50,7 +62,7 @@ pub fn ai_inspect_egui_system(
         if Some(action) != state.debug_action.back() {
             state.debug_action.push_back(action.clone());
         }
-        if state.debug_action.len() > 20 {
+        if state.debug_action.len() > 6 {
             state.debug_action.pop_front();
         }
     }

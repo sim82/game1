@@ -34,6 +34,7 @@ impl Plugin for AiPlugin {
         app.register_type::<util::TargetDistanceProbe>()
             .register_type::<HealthPoints>()
             .add_system(inspect::ai_inspect_egui_system)
+            .add_system(inspect::ai_inspect_pick_target)
             .init_resource::<AiInspectState>()
             .add_system_to_stage(CoreStage::PostUpdate, util::measure_target_distance_system)
             // actions

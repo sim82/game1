@@ -397,7 +397,7 @@ impl Plugin for PlayfieldPlugin {
             .add_system(background_on_click)
             .add_system(set_texture_filters_to_nearest)
             // .add_system(new_tile_system)
-            .add_system(tilemap_egui_ui_system)
+            // .add_system(tilemap_egui_ui_system)
             .add_system(spawn_waypoints_system);
     }
 }
