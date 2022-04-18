@@ -7,6 +7,7 @@ use bevy_egui::EguiPlugin;
 use big_brain::BigBrainPlugin;
 use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin, HealthPoints},
+    die::die_system,
     item::{medikit::Medikit, ItemContactProbe, ItemPlugin},
     movement::{
         crab_move::{CrabMoveDirection, CrabMoveWalker},
@@ -63,7 +64,8 @@ fn main() {
         .add_system(exit_on_esc_system)
         // .add_system(spawn_waypoint_on_click)
         .add_system(game1::pew_move_system)
-        .add_system_to_stage(CoreStage::PostUpdate, game1::despawn_reaper_system);
+        .add_system_to_stage(CoreStage::PostUpdate, game1::despawn_reaper_system)
+        .add_system(die_system);
     //
     // type registrations
     //
@@ -118,7 +120,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
-    for i in 0..1 {
+    for i in 0..10 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),

@@ -44,6 +44,6 @@ pub fn check_pew_intersection_system(
 pub fn apply_zap_damage(time: Res<Time>, mut query: Query<&mut HealthPoints, With<BeingZapped>>) {
     for mut health_points in query.iter_mut() {
         info!("zap: {}", time.delta_seconds());
-        health_points.health -= (time.delta_seconds() * 60.0) as i32;
+        health_points.health -= (time.delta_seconds() * 120.0) as i32;
     }
 }
