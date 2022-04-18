@@ -1,4 +1,4 @@
-use crate::{ai::HealthPoints, path::Waypoint, sprites};
+use crate::{ai::HealthPoints, path::Waypoint, sprites, Despawn};
 use bevy::prelude::*;
 use bevy_aseprite::AsepriteBundle;
 use rand::prelude::SliceRandom;
@@ -27,8 +27,7 @@ pub fn pick_medikit_system(
         for item_entity in contacts.contacts.drain(..) {
             if medikit_query.get(item_entity).is_ok() {
                 health_points.health += tune::MEDIKIT_HEALTH;
-                commands.entity(item_entity).despawn_recursive();
-                info!("despawn medikit: {:?}", item_entity);
+                commands.entity(item_entity).insert(Despawn::ThisFrame);
             }
         }
     }

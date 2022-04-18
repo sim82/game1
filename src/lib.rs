@@ -36,8 +36,15 @@ pub struct TargetFlag;
 // TODO: move to proper package
 #[derive(Component)]
 pub struct Pew(pub bool);
+// #[derive(Component)]
+// pub struct TimeToLive(pub f32);
+
 #[derive(Component)]
-pub struct TimeToLive(pub f32);
+#[component(storage = "SparseSet")]
+pub enum Despawn {
+    ThisFrame,
+    TimeToLive(f32),
+}
 
 pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>) {
     for (Pew(right), mut transform) in query.iter_mut() {
@@ -51,14 +58,34 @@ pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>
     }
 }
 
-pub fn time_to_live_reaper_system(
+// pub fn time_to_live_reaper_system(
+//     mut commands: Commands,
+//     time: Res<Time>,
+//     mut query: Query<(Entity, &mut TimeToLive)>,
+// ) {
+//     for (entity, mut ttl) in query.iter_mut() {
+//         ttl.0 -= time.delta_seconds();
+//         if ttl.0 <= 0.0 {
+//             commands.entity(entity).despawn_recursive();
+//         }
+//     }
+// }
+
+pub fn despawn_reaper_system(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(Entity, &mut TimeToLive)>,
+    mut query: Query<(Entity, &mut Despawn)>,
 ) {
-    for (entity, mut ttl) in query.iter_mut() {
-        ttl.0 -= time.delta_seconds();
-        if ttl.0 <= 0.0 {
+    for (entity, mut despawn) in query.iter_mut() {
+        let despawn = match *despawn {
+            Despawn::ThisFrame => true,
+            Despawn::TimeToLive(ref mut ttl) => {
+                *ttl -= time.delta_seconds();
+                *ttl <= 0.0
+            }
+        };
+        if despawn {
+            info!("despawn {:?}", entity);
             commands.entity(entity).despawn_recursive();
         }
     }

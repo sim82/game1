@@ -18,7 +18,7 @@ use game1::{
     sprites,
     tilemap::PlayfieldPlugin,
     ui::IngameUiPlugin,
-    InputTarget, Pew, TargetFlag, TimeToLive,
+    Despawn, InputTarget, Pew, TargetFlag,
 };
 use rand::{thread_rng, Rng};
 
@@ -63,7 +63,7 @@ fn main() {
         .add_system(exit_on_esc_system)
         // .add_system(spawn_waypoint_on_click)
         .add_system(game1::pew_move_system)
-        .add_system(game1::time_to_live_reaper_system);
+        .add_system_to_stage(CoreStage::PostUpdate, game1::despawn_reaper_system);
     //
     // type registrations
     //
@@ -118,7 +118,7 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
-    for i in 0..10 {
+    for i in 0..1 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -245,7 +245,7 @@ fn apply_input(
                     ..Default::default()
                 })
                 .insert(Pew(walk_velocity.direction.is_right()))
-                .insert(TimeToLive(10.0));
+                .insert(Despawn::TimeToLive(10.0));
         }
         // else if keyboard_input.just_pressed(KeyCode::K) {
         //     commands
