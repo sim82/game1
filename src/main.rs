@@ -7,6 +7,7 @@ use bevy_egui::EguiPlugin;
 use big_brain::BigBrainPlugin;
 use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin, HealthPoints},
+    brainy::spawn_brainy_ferris_system,
     die::die_system,
     item::{medikit::Medikit, ItemContactProbe, ItemPlugin},
     movement::{
@@ -65,7 +66,8 @@ fn main() {
         // .add_system(spawn_waypoint_on_click)
         .add_system(game1::pew_move_system)
         .add_system_to_stage(CoreStage::PostUpdate, game1::despawn_reaper_system)
-        .add_system(die_system);
+        .add_system(die_system)
+        .add_system(spawn_brainy_ferris_system);
     //
     // type registrations
     //
@@ -120,7 +122,8 @@ pub fn setup(mut commands: Commands) {
 
     let mut rng = thread_rng();
     let dist = rand_distr::Normal::new(0.0f32, 50.0f32).unwrap();
-    for i in 0..10 {
+    #[allow(clippy::reversed_empty_ranges)]
+    for i in 0..0 {
         // spawn_stupid_ferris(
         //     &mut commands,
         //     Vec3::new(rng.sample(dist), rng.sample(dist), 0.0),
@@ -142,7 +145,7 @@ pub fn setup(mut commands: Commands) {
             animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
                 scale: Vec3::splat(1.),
-                translation: Vec3::new(0., 100., 5.),
+                translation: Vec3::new(40., 112., 5.),
                 ..Default::default()
             },
 
@@ -246,7 +249,7 @@ fn apply_input(
 
                     ..Default::default()
                 })
-                .insert(Pew(walk_velocity.direction.is_right()))
+                .insert(Pew(walk_velocity.direction.is_right(), 15.0))
                 .insert(Despawn::TimeToLive(10.0));
         }
         // else if keyboard_input.just_pressed(KeyCode::K) {

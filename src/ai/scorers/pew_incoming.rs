@@ -47,7 +47,7 @@ pub fn pew_incoming_scorer_system(
                     translation: pew_translation,
                     ..
                 },
-                Pew(pew_going_right),
+                Pew(pew_going_right, _),
             ) in pew_query.iter()
             {
                 let dx = translation.x - pew_translation.x;

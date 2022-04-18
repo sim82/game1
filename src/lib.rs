@@ -36,7 +36,7 @@ pub struct TargetFlag;
 // stuff related to projectiles (Pew, Pew)
 // TODO: move to proper package
 #[derive(Component)]
-pub struct Pew(pub bool);
+pub struct Pew(pub bool, pub f32);
 // #[derive(Component)]
 // pub struct TimeToLive(pub f32);
 
@@ -48,7 +48,7 @@ pub enum Despawn {
 }
 
 pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>) {
-    for (Pew(right), mut transform) in query.iter_mut() {
+    for (Pew(right, _), mut transform) in query.iter_mut() {
         let dir = if *right {
             Vec3::new(1.0, 0.0, 0.0)
         } else {

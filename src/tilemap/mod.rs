@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use bevy::{prelude::*, render::render_resource::TextureUsages};
+use bevy::{prelude::*, render::render_resource::TextureUsages, sprite::collide_aabb::collide};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
@@ -65,7 +65,7 @@ pub fn set_texture_filters_to_nearest(
     }
 }
 
-fn pointy_hex_to_pixel(x: i32, y: i32) -> Vec3 {
+pub fn pointy_hex_to_pixel(x: i32, y: i32) -> Vec3 {
     let x = x as f32;
     let y = y as f32;
     let column_width = 18.0f32;
@@ -81,7 +81,17 @@ fn pointy_hex_to_pixel(x: i32, y: i32) -> Vec3 {
     )
 }
 
-fn pixel_to_pointy_hex(p: Vec3) -> (i32, i32) {
+pub fn pointy_hex_to_aabb(x: i32, y: i32) -> (Vec3, Vec2) {
+    let column_width = 18.0f32;
+    let row_height = 20.0;
+    let row_height_eff = row_height * 0.75;
+    (
+        pointy_hex_to_pixel(x, y),
+        Vec2::new(column_width, row_height_eff),
+    )
+}
+
+pub fn pixel_to_pointy_hex(p: Vec3) -> (i32, i32) {
     let column_width = 18.0f32;
     let column_half_width = column_width / 2.0;
 
@@ -91,7 +101,7 @@ fn pixel_to_pointy_hex(p: Vec3) -> (i32, i32) {
     let qx = p.x - (major_y as f32) * column_half_width;
 
     let major_x = (qx / column_width).floor() as i32;
-    info!("major: {} {}", major_x, major_y);
+    // info!("major: {} {}", major_x, major_y);
 
     (major_x, major_y)
 }
@@ -226,7 +236,7 @@ fn background_on_click(
     }
 }
 
-fn hex_neighbors(pos: TilePos) -> [TilePos; 6] {
+pub fn hex_neighbors(pos: TilePos) -> [TilePos; 6] {
     [
         TilePos(pos.0 - 1, pos.1 + 1),
         TilePos(pos.0, pos.1 + 1),

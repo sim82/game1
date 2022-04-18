@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_aseprite::{AsepriteAnimation, AsepriteBundle};
 use big_brain::prelude::*;
-use rand::Rng;
+use rand::{prelude::SliceRandom, Rng};
 
 use crate::{
     ai::{
@@ -18,6 +18,7 @@ use crate::{
     },
     item::ItemContactProbe,
     movement::{crab_move::CrabMoveWalker, walk::VelocityWalker, zap::Zappable},
+    path::Waypoint,
     sprites,
     ui::TrackingOverlayTarget,
 };
@@ -26,6 +27,7 @@ mod tune {
     pub const FEAR_DISTANCE: f32 = 50.0;
     pub const CURIOSITY_DISTANCE: f32 = 150.0;
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
+    pub const BRAINY_FERRIS_COUNT: usize = 100;
 }
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: bool) {
@@ -81,5 +83,33 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
     }
     if inspect_target {
         entity_commands.insert(AiInspectTarget);
+    }
+}
+
+pub fn spawn_brainy_ferris_system(
+    mut commands: Commands,
+    query: Query<Entity, With<Zappable>>,
+    waypoints_query: Query<&Transform, With<Waypoint>>,
+) {
+    let count = query.iter().count();
+    if count >= tune::BRAINY_FERRIS_COUNT {
+        return;
+    }
+
+    let num_create = tune::BRAINY_FERRIS_COUNT - count;
+    let waypoint_pos = waypoints_query
+        .iter()
+        .map(|transform| transform.translation)
+        .collect::<Vec<_>>();
+
+    if waypoint_pos.len() < num_create {
+        return;
+    }
+
+    let mut rng = rand::thread_rng();
+
+    for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
+        // FIXME: hardcoded z offset is crap
+        spawn_brainy_ferris(&mut commands, *pos + Vec3::Z * 5.0, false);
     }
 }

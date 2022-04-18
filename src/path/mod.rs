@@ -63,7 +63,7 @@ fn update_graph_system(
                 if d > 18.0 {
                     continue;
                 }
-                debug_draw_line(&mut debug_lines, start, end, Some(20.0));
+                debug_draw_line(&mut debug_lines, start, end, Some(5.0));
                 graph.graph_map.add_edge(start_entity, end_entity, 1.0f32);
             }
         }
@@ -289,7 +289,7 @@ pub struct PathPlugin;
 impl Plugin for PathPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WaypointGraph>()
-            .add_system(debug_draw_system)
+            // .add_system(debug_draw_system)
             .add_system(update_graph_system)
             .add_system(find_path_system_par)
             // .add_system(print_new_path_system)
