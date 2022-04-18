@@ -289,7 +289,7 @@ pub struct PathPlugin;
 impl Plugin for PathPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WaypointGraph>()
-            .add_system(path_egui_ui_system)
+    //        .add_system(path_egui_ui_system)
             // .add_system(debug_draw_system)
             .add_system(update_graph_system)
             .add_system(find_path_system_par)
