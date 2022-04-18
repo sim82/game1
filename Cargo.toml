@@ -12,7 +12,7 @@ inspector = ["bevy-inspector-egui"]
 # bevy = { version = "0.6", features = [] }
 #bevy_aseprite = "0.6"
 bevy = { version = "0.6", features = ["dynamic"] }
-bevy_aseprite = { path = "ext/bevy_aseprite-0.6.0" }
+bevy_aseprite = { path = "crates/bevy_aseprite" }
 bevy_asset_loader = "0.9"
 bevy_ecs_tilemap = "0.5"
 bevy_prototype_debug_lines = "0.6"
