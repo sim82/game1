@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::evaluators::Evaluator;
 
-use crate::TargetFlag;
+use crate::{tune, TargetFlag};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -43,6 +43,34 @@ impl Evaluator for ThresholdEvaluator {
             1.0
         } else {
             0.0
+        }
+    }
+}
+
+#[derive(Component, Reflect)]
+pub struct Ammo {
+    pub ammo: f32,
+    pub reload_time: f32,
+}
+
+impl Default for Ammo {
+    fn default() -> Self {
+        Self {
+            ammo: tune::AMMO_RELOAD_AMOUNT,
+            reload_time: tune::AMMO_RELOAD_TIME,
+        }
+    }
+}
+
+pub fn ammo_reload_system(time: Res<Time>, mut query: Query<&mut Ammo>) {
+    for mut ammo in query.iter_mut() {
+        if ammo.ammo == 0.0 {
+            ammo.reload_time -= time.delta_seconds();
+
+            if ammo.reload_time <= 0.0 {
+                ammo.ammo = tune::AMMO_RELOAD_AMOUNT;
+                ammo.reload_time = tune::AMMO_RELOAD_TIME;
+            }
         }
     }
 }

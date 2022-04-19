@@ -15,7 +15,7 @@ use crate::{
     path::WaypointPath,
 };
 
-use super::{actions::DebugAction, HealthPoints};
+use super::{actions::DebugAction, util::Ammo, HealthPoints};
 
 #[derive(Component)]
 pub struct AiInspectTarget;
@@ -57,6 +57,7 @@ pub fn ai_inspect_egui_system(
     action_query: Query<&DebugAction, (With<AiInspectTarget>, Changed<DebugAction>)>,
     zapped_query: Query<(), (With<BeingZapped>, With<AiInspectTarget>)>,
     goto_point_query: Query<&MovementGoToPoint>,
+    ammo_query: Query<&Ammo, With<AiInspectTarget>>,
 ) {
     for action in action_query.iter() {
         if Some(action) != state.debug_action.back() {
@@ -75,6 +76,9 @@ pub fn ai_inspect_egui_system(
     egui::Window::new("ai inspect").show(egui_context.ctx_mut(), |ui| {
         if let Ok(health_points) = health_query.get_single() {
             ui.label(format!("health: {}", health_points.health));
+        }
+        if let Ok(ammo) = ammo_query.get_single() {
+            ui.label(format!("ammo: {} {}", ammo.ammo, ammo.reload_time));
         }
 
         if let Ok((follow, waypoint_path)) = follow_path_query.get_single() {

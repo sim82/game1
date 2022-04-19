@@ -13,12 +13,14 @@ use game1::{
     movement::{
         crab_move::{CrabMoveDirection, CrabMoveWalker},
         walk::VelocityWalker,
+        zap::Zappable,
         MovementPlugin,
     },
     path::{PathPlugin, Waypoint},
     pointer::{ClickEvent, MousePointerFlag, PointerPlugin},
     sprites,
     tilemap::PlayfieldPlugin,
+    tune,
     ui::IngameUiPlugin,
     Despawn, InputTarget, Pew, TargetFlag,
 };
@@ -67,7 +69,8 @@ fn main() {
         .add_system(game1::pew_move_system)
         .add_system_to_stage(CoreStage::PostUpdate, game1::despawn_reaper_system)
         .add_system(die_system)
-        .add_system(spawn_brainy_ferris_system);
+        .add_system(spawn_brainy_ferris_system)
+        .add_system(spawn_player_system);
     //
     // type registrations
     //
@@ -139,23 +142,7 @@ pub fn setup(mut commands: Commands) {
         );
     }
 
-    commands
-        .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Ferris::sprite(),
-            animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
-            transform: Transform {
-                scale: Vec3::splat(1.),
-                translation: Vec3::new(40., 112., 5.),
-                ..Default::default()
-            },
-
-            ..Default::default()
-        })
-        .insert(InputTarget)
-        .insert(CrabMoveWalker::default())
-        .insert(TargetFlag)
-        .insert(HealthPoints { health: 25 })
-        .insert(ItemContactProbe::default());
+    // spawn_player(&mut commands, Vec3::new(40., 112., 5.));
 
     commands
         .spawn_bundle(AsepriteBundle {
@@ -170,6 +157,27 @@ pub fn setup(mut commands: Commands) {
             ..Default::default()
         })
         .insert(MousePointerFlag);
+}
+
+fn spawn_player(commands: &mut Commands, translation: Vec3) {
+    commands
+        .spawn_bundle(AsepriteBundle {
+            aseprite: sprites::Ferris::sprite(),
+            animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
+            transform: Transform {
+                scale: Vec3::splat(1.),
+                translation,
+                ..Default::default()
+            },
+
+            ..Default::default()
+        })
+        .insert(InputTarget)
+        .insert(CrabMoveWalker::default())
+        .insert(TargetFlag)
+        .insert(HealthPoints { health: 60 })
+        .insert(ItemContactProbe::default())
+        .insert(Zappable);
 }
 
 fn setup_camera(
@@ -237,13 +245,18 @@ fn apply_input(
         }
 
         if keyboard_input.just_pressed(KeyCode::J) && walk_velocity.direction.is_any() {
+            let offset = if walk_velocity.direction.is_right() {
+                Vec3::new(tune::PEW_ZAP_DISTANCE, 0.0, 0.0)
+            } else {
+                Vec3::new(-tune::PEW_ZAP_DISTANCE, 0.0, 0.0)
+            };
             commands
                 .spawn_bundle(AsepriteBundle {
                     aseprite: sprites::Pew::sprite(),
                     animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                     transform: Transform {
                         scale: Vec3::splat(1.),
-                        translation: transform.translation,
+                        translation: transform.translation + offset,
                         ..Default::default()
                     },
 
@@ -283,5 +296,11 @@ pub fn spawn_waypoint_on_click(mut commands: Commands, mut click_events: EventRe
             .spawn()
             .insert(Waypoint)
             .insert(Transform::from_translation(event.pos));
+    }
+}
+
+pub fn spawn_player_system(mut commands: Commands, query: Query<(), With<InputTarget>>) {
+    if query.is_empty() {
+        spawn_player(&mut commands, Vec3::new(40., 112., 5.));
     }
 }

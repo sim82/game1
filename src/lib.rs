@@ -18,6 +18,9 @@ pub mod tune {
     pub const PEW_ZAP_DISTANCE: f32 = 8.0;
     pub const PEW_DETECT_FAR: f32 = 150.0;
     pub const PEW_DETECT_NEAR: f32 = 50.0;
+
+    pub const AMMO_RELOAD_TIME: f32 = 0.5;
+    pub const AMMO_RELOAD_AMOUNT: f32 = 3.0;
 }
 pub mod sprites {
     use bevy_aseprite::aseprite;

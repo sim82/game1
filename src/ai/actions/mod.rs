@@ -6,6 +6,7 @@ pub mod follow;
 pub mod goto_medikit;
 pub mod jiggle_around;
 pub mod run_away;
+pub mod shoot;
 
 // FIXME: this is a bit of a kludge to track the active action. It would be nice to get this
 // automatically either from the ecs or big_brain. Maybe look into AnyOf

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::BigBrainStage;
 
-use crate::ai::inspect::AiInspectState;
+use crate::ai::{inspect::AiInspectState, util::ammo_reload_system};
 
 pub mod actions;
 pub mod diagnostics;
@@ -24,10 +24,12 @@ impl Plugin for AiPlugin {
                 dodge_pew::dodge_pew_action_system, follow::follow_action_system,
                 goto_medikit::goto_medikit_action_system,
                 jiggle_around::jiggle_around_action_system, run_away::run_away_action_system,
+                shoot::shoot_action_system,
             },
             scorers::{
-                curiosity::curiousity_scorer_system, fear::fear_scorer_system,
-                health_low::low_health_scorer_system, pew_incoming::pew_incoming_scorer_system,
+                can_shoot::can_shoot_scorer_system, curiosity::curiousity_scorer_system,
+                fear::fear_scorer_system, health_low::low_health_scorer_system,
+                pew_incoming::pew_incoming_scorer_system,
             },
         };
 
@@ -37,17 +39,19 @@ impl Plugin for AiPlugin {
             .add_system(inspect::ai_inspect_pick_target)
             .init_resource::<AiInspectState>()
             .add_system_to_stage(CoreStage::PostUpdate, util::measure_target_distance_system)
+            .add_system(ammo_reload_system)
             // actions
             .add_system_to_stage(BigBrainStage::Actions, run_away_action_system)
             .add_system_to_stage(BigBrainStage::Actions, follow_action_system)
             .add_system_to_stage(BigBrainStage::Actions, jiggle_around_action_system)
             .add_system_to_stage(BigBrainStage::Actions, dodge_pew_action_system)
             .add_system_to_stage(BigBrainStage::Actions, goto_medikit_action_system)
+            .add_system_to_stage(BigBrainStage::Actions, shoot_action_system)
             // scorers
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, pew_incoming_scorer_system)
-            .add_system_to_stage(BigBrainStage::Scorers, low_health_scorer_system)            // .add_system_to_stage(BigBrainStage::Scorers, can_follow_path_scorer_system)
-            ;
+            .add_system_to_stage(BigBrainStage::Scorers, low_health_scorer_system)
+            .add_system_to_stage(BigBrainStage::Scorers, can_shoot_scorer_system);
     }
 }

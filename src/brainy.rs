@@ -8,13 +8,14 @@ use crate::{
     ai::{
         actions::{
             dodge_pew::DodgePew, follow::Follow, goto_medikit::GotoMedikit,
-            jiggle_around::JiggleAround, run_away::RunAway,
+            jiggle_around::JiggleAround, run_away::RunAway, shoot::Shoot,
         },
         inspect::AiInspectTarget,
         scorers::{
-            curiosity::Curiousity, fear::Fear, health_low::LowHealth, pew_incoming::PewIncoming,
+            can_shoot::CanShoot, curiosity::Curiousity, fear::Fear, health_low::LowHealth,
+            pew_incoming::PewIncoming,
         },
-        util::TargetDistanceProbe,
+        util::{Ammo, TargetDistanceProbe},
         HealthPoints,
     },
     item::ItemContactProbe,
@@ -63,7 +64,8 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
         .insert(Zappable)
         .insert(CrabMoveWalker::default())
         .insert(TargetDistanceProbe { d: 0.0 })
-        .insert(ItemContactProbe::default());
+        .insert(ItemContactProbe::default())
+        .insert(Ammo::default());
 
     if !false {
         entity_commands
@@ -71,6 +73,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
                 Thinker::build()
                     .picker(FirstToScore { threshold })
                     .when(PewIncoming::build(), DodgePew::build())
+                    .when(CanShoot::default(), Shoot::default())
                     .when(LowHealth::build(), GotoMedikit::default())
                     .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
                     .when(
@@ -102,7 +105,7 @@ pub fn spawn_brainy_ferris_system(
     mut commands: Commands,
     mut egui_context: ResMut<EguiContext>,
     mut state: Local<SpawnFerrisState>,
-    mut query: Query<(Entity, &mut HealthPoints), With<Zappable>>,
+    mut query: Query<(Entity, &mut HealthPoints), With<ThinkerBuilder>>,
     waypoints_query: Query<&Transform, With<Waypoint>>,
 ) {
     egui::Window::new("ferris").show(egui_context.ctx_mut(), |ui| {
@@ -110,6 +113,7 @@ pub fn spawn_brainy_ferris_system(
     });
 
     let count = query.iter().count();
+    let mut first = count == 0;
 
     #[allow(clippy::comparison_chain)]
     match count.cmp(&state.ferris_count) {
@@ -128,7 +132,8 @@ pub fn spawn_brainy_ferris_system(
 
             for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
                 // FIXME: hardcoded z offset is crap
-                spawn_brainy_ferris(&mut commands, *pos + Vec3::Z * 5.0, false);
+                spawn_brainy_ferris(&mut commands, *pos + Vec3::Z * 5.0, first);
+                first = false;
             }
         }
 
