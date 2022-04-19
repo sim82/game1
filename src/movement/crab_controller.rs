@@ -3,7 +3,7 @@ use crate::{
     path::{PathQuery, Waypoint, WaypointPath},
 };
 
-use bevy::{ecs::system::Remove, prelude::*};
+use bevy::prelude::*;
 use rand::Rng;
 
 use super::control::{MovementEvade, MovementGoToPoint};

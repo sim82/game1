@@ -9,7 +9,7 @@ use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin, HealthPoints},
     brainy::spawn_brainy_ferris_system,
     die::die_system,
-    item::{medikit::Medikit, ItemContactProbe, ItemPlugin},
+    item::{ItemContactProbe, ItemPlugin},
     movement::{
         crab_move::{CrabMoveDirection, CrabMoveWalker},
         walk::VelocityWalker,

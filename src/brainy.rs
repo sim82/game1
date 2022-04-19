@@ -19,18 +19,15 @@ use crate::{
         HealthPoints,
     },
     item::ItemContactProbe,
-    movement::{crab_move::CrabMoveWalker, walk::VelocityWalker, zap::Zappable},
+    movement::{crab_move::CrabMoveWalker, zap::Zappable},
     path::Waypoint,
     sprites,
-    ui::TrackingOverlayTarget,
-    Despawn,
 };
 
 mod tune {
     pub const FEAR_DISTANCE: f32 = 50.0;
     pub const CURIOSITY_DISTANCE: f32 = 150.0;
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
-    pub const BRAINY_FERRIS_COUNT: usize = 1;
 }
 
 pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: bool) {
@@ -67,7 +64,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
         .insert(ItemContactProbe::default())
         .insert(Ammo::default());
 
-    if !false {
+    if true {
         entity_commands
             .insert(
                 Thinker::build()
@@ -140,7 +137,7 @@ pub fn spawn_brainy_ferris_system(
         std::cmp::Ordering::Greater => {
             let num_despawn = 10.min(count - state.ferris_count);
 
-            for (entity, mut health_points) in query.iter_mut().take(num_despawn) {
+            for (_entity, mut health_points) in query.iter_mut().take(num_despawn) {
                 // commands.entity(entity).insert(Despawn::ThisFrame);
                 health_points.health = 0;
             }

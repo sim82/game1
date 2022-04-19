@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use bevy::{prelude::*, render::render_resource::TextureUsages, sprite::collide_aabb::collide};
+use bevy::{prelude::*, render::render_resource::TextureUsages};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
@@ -9,7 +9,7 @@ use crate::{
     ai::inspect::AiInspectTarget,
     debug::debug_draw_cross,
     movement::control::MovementGoToPoint,
-    path::{self, PathQuery},
+    path::{self},
     pointer::ClickEvent,
 };
 pub mod io;
@@ -272,6 +272,7 @@ struct InteractionState {
     click_mode: ClickMode,
 }
 
+#[allow(unused)]
 fn tilemap_egui_ui_system(
     mut commands: Commands,
     mut egui_context: ResMut<EguiContext>,
