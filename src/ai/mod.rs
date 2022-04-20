@@ -27,9 +27,9 @@ impl Plugin for AiPlugin {
                 shoot::shoot_action_system,
             },
             scorers::{
-                can_shoot::can_shoot_scorer_system, curiosity::curiousity_scorer_system,
-                fear::fear_scorer_system, health_low::low_health_scorer_system,
-                pew_incoming::pew_incoming_scorer_system,
+                can_shoot::can_shoot_scorer_system, crowdiness::crowdiness_scorer_system,
+                curiosity::curiousity_scorer_system, fear::fear_scorer_system,
+                health_low::low_health_scorer_system, pew_incoming::pew_incoming_scorer_system,
             },
         };
 
@@ -52,6 +52,7 @@ impl Plugin for AiPlugin {
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, pew_incoming_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, low_health_scorer_system)
-            .add_system_to_stage(BigBrainStage::Scorers, can_shoot_scorer_system);
+            .add_system_to_stage(BigBrainStage::Scorers, can_shoot_scorer_system)
+            .add_system_to_stage(BigBrainStage::Scorers, crowdiness_scorer_system);
     }
 }

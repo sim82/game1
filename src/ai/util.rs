@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::evaluators::Evaluator;
 
-use crate::{tune, TargetFlag};
+use crate::{path::Waypoint, tune, TargetFlag};
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
@@ -73,4 +73,15 @@ pub fn ammo_reload_system(time: Res<Time>, mut query: Query<&mut Ammo>) {
             }
         }
     }
+}
+
+#[derive(Component)]
+struct WaypointAttributes {
+    attack: f32,
+}
+
+pub fn waypoint_attribute_system(
+    query: Query<&Transform, With<Waypoint>>,
+    target_query: Query<&Transform, With<TargetFlag>>,
+) {
 }

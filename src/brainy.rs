@@ -12,8 +12,8 @@ use crate::{
         },
         inspect::AiInspectTarget,
         scorers::{
-            can_shoot::CanShoot, curiosity::Curiousity, fear::Fear, health_low::LowHealth,
-            pew_incoming::PewIncoming,
+            can_shoot::CanShoot, crowdiness::Crowdiness, curiosity::Curiousity, fear::Fear,
+            health_low::LowHealth, pew_incoming::PewIncoming,
         },
         util::{Ammo, TargetDistanceProbe},
         HealthPoints,
@@ -26,7 +26,7 @@ use crate::{
 
 mod tune {
     pub const FEAR_DISTANCE: f32 = 50.0;
-    pub const CURIOSITY_DISTANCE: f32 = 150.0;
+    pub const CURIOSITY_DISTANCE: f32 = 100.0;
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
 }
 
@@ -73,6 +73,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
                     .when(CanShoot::default(), Shoot::default())
                     .when(LowHealth::build(), GotoMedikit::default())
                     .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
+                    .when(Crowdiness::default(), DodgePew::build())
                     .when(
                         Curiousity::build().within(tune::CURIOSITY_DISTANCE),
                         Follow {
@@ -90,21 +91,32 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
 
 pub struct SpawnFerrisState {
     ferris_count: usize,
+    next_increase: f32,
 }
 
 impl Default for SpawnFerrisState {
     fn default() -> Self {
-        Self { ferris_count: 1 }
+        Self {
+            ferris_count: 1,
+            next_increase: 15.0,
+        }
     }
 }
 
 pub fn spawn_brainy_ferris_system(
     mut commands: Commands,
+    time: Res<Time>,
     mut egui_context: ResMut<EguiContext>,
     mut state: Local<SpawnFerrisState>,
     mut query: Query<(Entity, &mut HealthPoints), With<ThinkerBuilder>>,
     waypoints_query: Query<&Transform, With<Waypoint>>,
 ) {
+    state.next_increase -= time.delta_seconds();
+    if state.next_increase <= 0.0 {
+        state.next_increase = 15.0;
+        state.ferris_count += 1;
+    }
+
     egui::Window::new("ferris").show(egui_context.ctx_mut(), |ui| {
         ui.add(egui::Slider::new(&mut state.ferris_count, 1..=100));
     });

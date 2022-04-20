@@ -3,7 +3,11 @@ use big_brain::prelude::*;
 
 use crate::{
     ai::util::TargetDistanceProbe,
-    movement::crab_move::{CrabMoveDirection, CrabMoveWalker},
+    movement::{
+        control::MovementGoToPoint,
+        crab_controller::CrabFollowPath,
+        crab_move::{CrabMoveDirection, CrabMoveWalker},
+    },
     TargetFlag,
 };
 
@@ -21,6 +25,7 @@ pub fn follow_action_system(
     // We execute actions by querying for their associated Action Component
     // (Drink in this case). You'll always need both Actor and ActionState.
     mut query: Query<(&Actor, &mut ActionState, &Follow)>,
+    go_to_point_query: Query<(), With<MovementGoToPoint>>,
 ) {
     let target_pos = target_query
         .iter()
@@ -40,23 +45,24 @@ pub fn follow_action_system(
                     // println!("Time to follow the target!");
                     // let tv = (target_pos - transform.translation).normalize();
                     // walker.velocity = -0.5 * tv;
-
+                    commands
+                        .entity(*actor)
+                        .insert(MovementGoToPoint(target_pos));
                     *state = ActionState::Executing;
                 }
                 ActionState::Executing => {
-                    if target_distance.d >= go_to_target.until {
-                        let tv = (target_pos - transform.translation).normalize();
-                        walker.direction = CrabMoveDirection::find_nearest(tv);
-                        // walker.velocity = 1.0 * tv;
-                        // info!("walk_velocity: {:?}", walker.velocity);
-                    } else {
-                        walker.direction = CrabMoveDirection::None;
-                        // *state = ActionState::Success;
+                    if go_to_point_query.get(*actor).is_err() {
+                        *state = ActionState::Success;
                     }
                 }
                 // All Actions should make sure to handle cancellations!
                 ActionState::Cancelled => {
                     // info!("follow target cancelled");
+                    commands
+                        .entity(*actor)
+                        .remove::<MovementGoToPoint>()
+                        .remove::<CrabFollowPath>();
+
                     *state = ActionState::Failure;
                 }
                 _ => {}

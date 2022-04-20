@@ -1,5 +1,7 @@
 #![feature(exclusive_range_pattern)]
 use bevy::prelude::*;
+use bevy_ecs_tilemap::{MapQuery, Tile};
+use movement::crab_move::clip_movement;
 
 pub mod ai;
 pub mod brainy;
@@ -50,15 +52,28 @@ pub enum Despawn {
     TimeToLive(f32),
 }
 
-pub fn pew_move_system(time: Res<Time>, mut query: Query<(&Pew, &mut Transform)>) {
-    for (Pew(right, _), mut transform) in query.iter_mut() {
+pub fn pew_move_system(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &Pew, &mut Transform)>,
+    mut map_query: MapQuery,
+    tile_query: Query<&Tile>,
+) {
+    for (entity, Pew(right, _), mut transform) in query.iter_mut() {
         let dir = if *right {
             Vec3::new(1.0, 0.0, 0.0)
         } else {
             Vec3::new(-1.0, 0.0, 0.0)
         } * time.delta_seconds()
             * tune::PEW_SPEED;
+
+        // // FIXME: it is not the smartest idea to use the clip_code to detect pew-wall collision, but it gets the job done quickly
+        // let d = clip_movement(&mut map_query, &tile_query, transform.translation, dir);
+        // if d == Vec3::ZERO {
+        //     commands.entity(entity).insert(Despawn::ThisFrame);
+        // } else {
         transform.translation += dir;
+        // }
     }
 }
 

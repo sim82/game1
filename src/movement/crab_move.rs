@@ -153,7 +153,7 @@ pub fn apply_velocity_system(
 }
 
 // FIXME: movement clipping is based on aabb of hex tile -> very crappy
-fn clip_movement(
+pub fn clip_movement(
     map_query: &mut MapQuery,
     tile_query: &Query<&Tile>,
     translation: Vec3,
