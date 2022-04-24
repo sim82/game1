@@ -7,6 +7,7 @@ pub mod ai;
 pub mod brainy;
 pub mod debug;
 pub mod die;
+pub mod hex;
 pub mod item;
 pub mod movement;
 pub mod path;

@@ -9,9 +9,9 @@ inspector = ["bevy-inspector-egui"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# bevy = { version = "0.6", features = [] }
+bevy = { version = "0.6", features = [] }
 #bevy_aseprite = "0.6"
-bevy = { version = "0.6", features = ["dynamic"] }
+# bevy = { version = "0.6", features = ["dynamic"] }
 bevy_aseprite = { path = "crates/bevy_aseprite" }
 bevy_asset_loader = "0.9"
 bevy_ecs_tilemap = "0.5"
@@ -27,3 +27,6 @@ serde_yaml = "0.8"
 petgraph = "0.6"
 pathfinding = "3"
 anyhow = "1"
+num-traits = "0.2"
+bitvec = "1"
+multimap = "0.8"
