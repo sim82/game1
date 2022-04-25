@@ -1,6 +1,8 @@
 #![feature(exclusive_range_pattern)]
 use bevy::prelude::*;
 use bevy_ecs_tilemap::{MapQuery, Tile};
+use bevy_prototype_debug_lines::DebugLines;
+use hex::tilemap::{HexTileAppearance, HexTileCoord};
 use movement::crab_move::clip_movement;
 
 pub mod ai;
@@ -56,9 +58,9 @@ pub enum Despawn {
 pub fn pew_move_system(
     mut commands: Commands,
     time: Res<Time>,
+    mut debug_lines: ResMut<DebugLines>,
     mut query: Query<(Entity, &Pew, &mut Transform)>,
-    mut map_query: MapQuery,
-    tile_query: Query<&Tile>,
+    tile_query: Query<(&HexTileCoord, &HexTileAppearance)>,
 ) {
     for (entity, Pew(right, _), mut transform) in query.iter_mut() {
         let dir = if *right {
@@ -69,12 +71,18 @@ pub fn pew_move_system(
             * tune::PEW_SPEED;
 
         // // FIXME: it is not the smartest idea to use the clip_code to detect pew-wall collision, but it gets the job done quickly
-        // let d = clip_movement(&mut map_query, &tile_query, transform.translation, dir);
-        // if d == Vec3::ZERO {
-        //     commands.entity(entity).insert(Despawn::ThisFrame);
-        // } else {
-        transform.translation += dir;
-        // }
+        let d = clip_movement(
+            &mut debug_lines,
+            &tile_query,
+            transform.translation,
+            dir,
+            0..1,
+        );
+        if d == Vec3::ZERO {
+            commands.entity(entity).insert(Despawn::ThisFrame);
+        } else {
+            transform.translation += dir;
+        }
     }
 }
 

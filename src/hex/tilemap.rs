@@ -1,9 +1,14 @@
+use std::collections::HashMap;
+
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_debug_lines::DebugLines;
 
 use crate::{hex::Cube, path, pointer::ClickEvent};
 
-use super::{wavefunction, Hex};
+use super::{
+    editor::{background_on_click, tilemap_egui_ui_system, InteractionState},
+    io, wavefunction, Hex,
+};
 
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
@@ -17,10 +22,10 @@ pub struct HexTileCoord {
     pub cube: Cube,
 }
 
-struct Resources {
-    base_entity: Entity,
-    texture_atlas: Handle<TextureAtlas>,
-    tile_size: Vec2,
+pub struct Resources {
+    pub base_entity: Entity,
+    pub texture_atlas: Handle<TextureAtlas>,
+    pub tile_size: Vec2,
 }
 
 impl Default for Resources {
@@ -56,15 +61,26 @@ fn init_system(
         .insert(Transform::default())
         .id();
 
-    for (cube, tile_type) in wavefunction::test() {
-        commands
-            .entity(resources.base_entity)
-            .with_children(|commands| {
-                commands
-                    .spawn()
-                    .insert(HexTileCoord { cube })
-                    .insert(HexTileAppearance { tile_type });
-            });
+    if let Ok(init) = io::Tilemap::load("map.yaml") {
+        let tiles: HashMap<Cube, usize> = init
+            .tiles
+            .iter()
+            .map(|x| {
+                let axial = Hex { q: x.x, r: x.y };
+                (axial.into(), x.t)
+            })
+            .collect();
+
+        for (cube, tile_type) in wavefunction::test(&tiles) {
+            commands
+                .entity(resources.base_entity)
+                .with_children(|commands| {
+                    commands
+                        .spawn()
+                        .insert(HexTileCoord { cube })
+                        .insert(HexTileAppearance { tile_type });
+                });
+        }
     }
 }
 
@@ -101,35 +117,6 @@ fn spawn_sprites_system(
         let coord_screen = coord.cube.to_odd_r_screen() * resources.tile_size;
         transform.translation = coord_screen.extend(0.0);
         // info!("coord_screen: {:?}", coord_screen);
-    }
-}
-
-fn background_on_click(
-    mut commands: Commands,
-    mut click_events: EventReader<ClickEvent>,
-    mut debug_lines: ResMut<DebugLines>,
-    resources: Res<Resources>,
-    // interaction_state: Res<InteractionState>,
-    // mut map_query: MapQuery,
-    ai_inspect_query: Query<(&HexTileCoord)>,
-) {
-    for event in click_events.iter() {
-        // let pos = pixel_to_pointy_hex(event.pos - resources.tile_size.extend(0.0) * -0.5);
-        // let cube: Cube = Cube::from_odd_r(pos); // test: unnecessary trip over cube form
-
-        let pos = (event.pos.xy() - resources.tile_size * -0.5)
-            * Vec2::new(1.0 / resources.tile_size.x, 1.0 / resources.tile_size.y);
-        let cube = Cube::from_odd_r_screen(pos);
-        info!("{:?} -> {:?}", pos, cube);
-
-        commands
-            .entity(resources.base_entity)
-            .with_children(|commands| {
-                commands
-                    .spawn()
-                    .insert(HexTileCoord { cube })
-                    .insert(HexTileAppearance::default());
-            });
     }
 }
 
@@ -173,9 +160,11 @@ impl Plugin for HexTilemapPlugin {
         app.init_resource::<Resources>()
             .register_type::<HexTileAppearance>()
             .register_type::<HexTileCoord>()
+            .init_resource::<InteractionState>()
             .add_startup_system(init_system)
             .add_system(spawn_sprites_system)
             .add_system(spawn_waypoints_system)
-            .add_system(background_on_click);
+            .add_system(background_on_click)
+            .add_system(tilemap_egui_ui_system);
     }
 }

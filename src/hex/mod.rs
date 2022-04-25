@@ -1,6 +1,8 @@
 use bevy::{prelude::Vec2, reflect::Reflect};
 use num_traits::Num;
 
+pub mod editor;
+pub mod io;
 pub mod tilemap;
 pub mod wavefunction;
 

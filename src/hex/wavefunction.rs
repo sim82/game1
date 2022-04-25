@@ -41,8 +41,8 @@ impl Tile {
     }
 }
 
-pub fn test() -> impl Iterator<Item = (Cube, usize)> {
-    let weights = vec![0.45, 0.05, 0.05, 0.45];
+pub fn test(input_tiles: &HashMap<Cube, usize>) -> impl Iterator<Item = (Cube, usize)> {
+    let weights = vec![0.05, 0.05, 0.70, 0.2];
 
     let rules = [
         (0, 1),
@@ -61,16 +61,63 @@ pub fn test() -> impl Iterator<Item = (Cube, usize)> {
     .collect::<MultiMap<usize, usize>>();
 
     let mut tiles: HashMap<Cube, Tile> = HashMap::new();
-    for y in 0..10 {
-        for x in 0..10 {
-            let v = Vec2::new(x as f32, y as f32);
-            let k = Cube::from_odd_r(v);
-            info!("v: {:?} k: {:?}", v, k);
-            tiles.insert(k, Tile::new(4));
+    let mut uncollapsed = HashSet::new();
+
+    {
+        let mut dirty = Vec::new();
+
+        for y in 0..13 {
+            for x in 0..20 {
+                let v = Vec2::new(x as f32, y as f32);
+                let k = Cube::from_odd_r(v);
+                let mut tile = Tile::new(4);
+
+                if let Some(x) = input_tiles.get(&k) {
+                    tile.allowed.fill(false);
+                    tile.allowed.set(*x, true);
+
+                    dirty.push(k);
+                } else {
+                    uncollapsed.insert(k);
+                }
+                tiles.insert(k, tile);
+            }
+        }
+        // for y in 0..13 {
+        //     for x in 0..20 {
+        //         let v = Vec2::new(x as f32, y as f32);
+        //         let k = Cube::from_odd_r(v);
+        //         if y == 0 || y == 12 || (x == 0 || x == 19) {
+        //             let tile = tiles.get_mut(&k).unwrap();
+        //             tile.allowed.fill(false);
+        //             tile.allowed.set(0, true);
+        //             dirty.push(k);
+        //         }
+        //     }
+        // }
+
+        while let Some(d) = dirty.pop() {
+            let dirty_tile = tiles.get(&d).unwrap();
+            let allowed_states = dirty_tile.allowed.clone();
+            let d: Cube = d.into();
+            for ndir in CUBE_DIRECTIONS.iter() {
+                let n = d + *ndir;
+                if let Some(neighbor_tile) = tiles.get_mut(&n.into()) {
+                    let restrict = derive_neighbor_restriction(&allowed_states, &rules);
+                    let (collapsed, changed) = neighbor_tile.apply_restrictions(&restrict);
+                    if collapsed {
+                        uncollapsed.remove(&n);
+                    }
+                    if changed {
+                        dirty.push(n);
+                    }
+                }
+            }
+            // println!("dirty: {:?}", dirty);
         }
     }
     let mut rng = rand::thread_rng();
-    let mut uncollapsed: HashSet<_> = tiles.keys().cloned().collect();
+    // uncollapsed = uncollapsed.difference(&remove_tiles);
     let mut step_mode = true;
     while !uncollapsed.is_empty() {
         // let collapse_i = rng.gen_range(0..unstable.len());

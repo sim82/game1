@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use crate::{
     debug::{debug_draw_box, debug_draw_cross},
     hex::tilemap::{HexTileAppearance, HexTileCoord},
@@ -101,8 +103,6 @@ pub fn apply_velocity_system(
         &CrabMoveWalker,
     )>,
     zapped_query: Query<Entity, With<BeingZapped>>,
-    mut map_query: MapQuery,
-    tile_query: Query<&Tile>,
     tile_query2: Query<(&HexTileCoord, &HexTileAppearance)>,
     grab_state: ResMut<MouseGrabState>,
     mut debug_lines: ResMut<DebugLines>,
@@ -136,19 +136,17 @@ pub fn apply_velocity_system(
 
             let x_delta = clip_movement(
                 &mut debug_lines,
-                &mut map_query,
-                &tile_query,
                 &tile_query2,
                 transform.translation,
                 x_delta,
+                0..2,
             );
             let y_delta = clip_movement(
                 &mut debug_lines,
-                &mut map_query,
-                &tile_query,
                 &tile_query2,
                 transform.translation,
                 y_delta,
+                0..2,
             );
 
             transform.translation += x_delta;
@@ -170,54 +168,12 @@ pub fn apply_velocity_system(
 }
 
 // FIXME: movement clipping is based on aabb of hex tile -> very crappy
-pub fn clip_movement_old(
-    map_query: &mut MapQuery,
-    tile_query: &Query<&Tile>,
-    _: &Query<(&HexTileCoord, &HexTileAppearance)>,
-    translation: Vec3,
-    delta: Vec3,
-) -> Vec3 {
-    // FIXME: the hard coded 256 256 offset is crap!
-
-    let p = translation + Vec3::new(256.0, 256.0, 0.0);
-    let (x, y) = pixel_to_pointy_hex(p);
-    // info!("tile: {:?}", tile);
-
-    let tile_pos = TilePos(x as u32, y as u32);
-
-    // use very small player box to make clipping bearable
-    let player_size = Vec2::new(6.0, 6.0);
-
-    // check collision with (non walkable) neighbor tiles
-    for neighbor_pos in hex_neighbors(tile_pos) {
-        if let Ok(neighbor_entity) = map_query.get_tile_entity(neighbor_pos, 0u16, 0u16) {
-            if let Ok(neighbor_tile) = tile_query.get(neighbor_entity) {
-                // info!("tile entity: {:?} {}", neighbor_entity, tile.texture_index);
-                if neighbor_tile.texture_index != 0 {
-                    continue;
-                }
-                let neighbor_box = pointy_hex_to_aabb(neighbor_pos.0 as i32, neighbor_pos.1 as i32);
-                // info!("neighbor: {:?} {} {}", neighbor_box, p + delta, player_size);
-
-                if collide(p + delta, player_size, neighbor_box.0, neighbor_box.1).is_some() {
-                    // info!("collision");
-                    return Vec3::ZERO;
-                }
-            }
-        }
-    }
-
-    delta
-}
-
-// FIXME: movement clipping is based on aabb of hex tile -> very crappy
 pub fn clip_movement(
     debug_lines: &mut DebugLines,
-    _: &mut MapQuery,
-    _: &Query<&Tile>,
     tile_query: &Query<(&HexTileCoord, &HexTileAppearance)>,
     translation: Vec3,
     delta: Vec3,
+    solid_range: Range<usize>,
 ) -> Vec3 {
     // FIXME: the hard coded 256 256 offset is crap!
     let box_size = Vec2::new(18.0, 20.0);
@@ -225,7 +181,7 @@ pub fn clip_movement(
     let aabbs: Vec<_> = tile_query
         .iter()
         .filter_map(|(coord, app)| {
-            if app.tile_type == 0 {
+            if solid_range.contains(&app.tile_type) {
                 Some((
                     (coord.cube.to_odd_r_screen() * box_size).extend(0.0),
                     box_size * Vec2::new(1.0, 0.75),
@@ -236,7 +192,7 @@ pub fn clip_movement(
         })
         .collect();
 
-    info!("aabbs: {:?}", aabbs);
+    // info!("aabbs: {:?}", aabbs);
 
     // use very small player box to make clipping bearable
     let player_size = Vec2::new(6.0, 6.0);
