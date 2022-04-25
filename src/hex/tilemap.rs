@@ -141,7 +141,7 @@ fn spawn_waypoints_system(
     mut commands: Commands,
 ) {
     for (_entity, tile_pos, tile) in query.iter() {
-        if tile.tile_type == 0 {
+        if (0..2).contains(&tile.tile_type) {
             continue;
         }
         commands
