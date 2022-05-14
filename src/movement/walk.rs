@@ -27,7 +27,7 @@ pub fn apply_velocity_system(
 
     for (entity, mut transform, mut animation, walk_velocity) in query.iter_mut() {
         if zapped_query.get(entity).is_ok() {
-            if animation.tag != Some(sprites::Ferris::tags::ZAP.into()) {
+            if !animation.is_tag(sprites::Ferris::tags::ZAP) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::ZAP)
             }
             continue;
@@ -43,17 +43,16 @@ pub fn apply_velocity_system(
             let dir = walk_velocity.velocity.normalize();
             transform.translation += tune::WALK_SPEED * dir * time.delta_seconds();
             // animation.
-            if dir.x > 0.0 && animation.tag != Some(sprites::Ferris::tags::WALK_RIGHT.into()) {
+            if dir.x > 0.0 && !animation.is_tag(sprites::Ferris::tags::WALK_RIGHT) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT);
-            } else if dir.x < 0.0 && animation.tag != Some(sprites::Ferris::tags::WALK_LEFT.into())
-            {
+            } else if dir.x < 0.0 && !animation.is_tag(sprites::Ferris::tags::WALK_LEFT) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_LEFT);
             } else if (dir.x == 0.0 && dir.y != 0.0)
-                && animation.tag != Some(sprites::Ferris::tags::WALK_CENTER.into())
+                && !animation.is_tag(sprites::Ferris::tags::WALK_CENTER)
             {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_CENTER);
             }
-        } else if animation.tag != Some(sprites::Ferris::tags::STAND.into()) {
+        } else if !animation.is_tag(sprites::Ferris::tags::STAND) {
             *animation = AsepriteAnimation::from(sprites::Ferris::tags::STAND);
         }
     }
