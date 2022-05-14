@@ -14,6 +14,7 @@ use super::{
 enum ClickMode {
     Wall,
     Ground,
+    Water,
     // Fill,
     // Probe,
     // GoThere,
@@ -52,6 +53,7 @@ pub fn tilemap_egui_ui_system(
             ClickMode::Ground,
             "Ground",
         );
+        ui.radio_value(&mut interaction_state.click_mode, ClickMode::Water, "Water");
 
         // do_spawn_waypoints = ui.button("-> waypoints").clicked();
     });
@@ -108,6 +110,7 @@ pub fn background_on_click(
         let tile_type = match interaction_state.click_mode {
             ClickMode::Wall => 0,
             ClickMode::Ground => 2,
+            ClickMode::Water => 1,
         };
 
         commands

@@ -42,7 +42,7 @@ impl Tile {
 }
 
 pub fn test(input_tiles: &HashMap<Cube, usize>) -> impl Iterator<Item = (Cube, usize)> {
-    let weights = vec![0.05, 0.05, 0.70, 0.2];
+    let weights = vec![0.50, 0.05, 0.40, 0.05];
 
     let rules = [
         (0, 1),

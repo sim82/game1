@@ -139,14 +139,14 @@ pub fn apply_velocity_system(
                 &tile_query2,
                 transform.translation,
                 x_delta,
-                0..2,
+                0..1,
             );
             let y_delta = clip_movement(
                 &mut debug_lines,
                 &tile_query2,
                 transform.translation,
                 y_delta,
-                0..2,
+                0..1,
             );
 
             transform.translation += x_delta;
