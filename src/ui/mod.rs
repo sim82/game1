@@ -1,4 +1,7 @@
-use bevy::{prelude::*, render::camera::CameraProjection};
+use bevy::{
+    prelude::*,
+    render::camera::{Camera2d, CameraProjection},
+};
 
 use self::dom::{Div, Element};
 
@@ -75,20 +78,27 @@ fn update_tracking_overlays(
     windows: ResMut<Windows>,
     mut overlays_query: Query<(&Link, &mut Style)>,
     target_query: Query<&GlobalTransform, Without<Link>>,
-    ortho_cam_query: Query<(&GlobalTransform, &Camera), With<Camera>>,
+    cam_2d_query: Query<(&GlobalTransform, &Camera), With<Camera2d>>,
+    cam_ui_query: Query<(&GlobalTransform, &Camera), With<CameraUi>>,
 ) {
-    let mut mat_2d = None;
-    let mut mat_ui = None;
-
     // get projection and transformation of both 2d and ui cameras
-    for (transform, camera) in ortho_cam_query.iter() {
-        let mat = camera.projection_matrix * transform.compute_matrix().inverse();
-        match camera.name.as_deref() {
-            Some("camera_2d") => mat_2d = Some(mat),
-            Some("camera_ui") => mat_ui = Some(mat),
-            _ => (),
-        }
-    }
+    let mat_2d = cam_2d_query
+        .get_single()
+        .map(|(transform, camera)| camera.projection_matrix * transform.compute_matrix().inverse())
+        .ok();
+    let mat_ui = cam_ui_query
+        .get_single()
+        .map(|(transform, camera)| camera.projection_matrix * transform.compute_matrix().inverse())
+        .ok();
+
+    // for (transform, camera) in ortho_cam_query.iter() {
+    //     let mat = camera.projection_matrix * transform.compute_matrix().inverse();
+    //     match camera.name.as_deref() {
+    //         Some("camera_2d") => mat_2d = Some(mat),
+    //         Some("camera_ui") => mat_ui = Some(mat),
+    //         _ => (),
+    //     }
+    // }
 
     for (Link(link_entity), mut overlay_style) in overlays_query.iter_mut() {
         if let (Ok(target_transform), Some(mat_2d), Some(mat_ui)) =

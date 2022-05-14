@@ -71,6 +71,7 @@ pub fn pick_medikit_system(
 
 pub fn spawn_medikits_system(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     query: Query<Entity, With<Medikit>>,
     waypoints_query: Query<&Transform, With<Waypoint>>,
 ) {
@@ -94,7 +95,7 @@ pub fn spawn_medikits_system(
     for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
         commands
             .spawn_bundle(AsepriteBundle {
-                aseprite: sprites::Medikit::sprite(),
+                aseprite: asset_server.load(sprites::Medikit::PATH),
                 transform: Transform {
                     scale: Vec3::splat(1.),
                     translation: *pos + Vec3::new(0.0, 0.0, 5.0),

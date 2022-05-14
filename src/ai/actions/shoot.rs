@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_aseprite::{AsepriteAnimation, AsepriteBundle};
+use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle};
 use big_brain::prelude::*;
 
 use crate::{
@@ -18,6 +18,7 @@ pub struct Shoot {
 
 pub fn shoot_action_system(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     time: Res<Time>,
     mut query: Query<(&Actor, &mut ActionState, &mut Shoot)>,
     player_query: Query<&Transform, With<TargetFlag>>,
@@ -63,7 +64,7 @@ pub fn shoot_action_system(
                     };
                     commands
                         .spawn_bundle(AsepriteBundle {
-                            aseprite: sprites::Pew::sprite(),
+                            aseprite: asset_server.load(sprites::Pew::PATH),
                             animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                             transform: Transform {
                                 scale: Vec3::splat(1.),

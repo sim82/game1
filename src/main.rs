@@ -1,6 +1,9 @@
-use bevy::{diagnostic::DiagnosticsPlugin, input::system::exit_on_esc_system, prelude::*};
+use bevy::{
+    diagnostic::DiagnosticsPlugin, input::system::exit_on_esc_system, prelude::*,
+    render::camera::Camera2d,
+};
 // use bevy_aseprite::AsepritePlugin;
-use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepritePlugin};
+use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 
 use bevy_ecs_tilemap::TilemapPlugin;
 use bevy_egui::EguiPlugin;
@@ -30,7 +33,6 @@ use rand::{thread_rng, Rng};
 fn main() {
     let mut app = App::new();
     app.insert_resource(WindowDescriptor {
-        vsync: true,
         ..Default::default()
     });
     //
@@ -87,10 +89,10 @@ fn main() {
     app.run();
 }
 
-pub fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
+pub fn spawn_stupid_ferris(commands: &mut Commands, asset_server: &AssetServer, pos: Vec3) {
     commands
         .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Ferris::sprite(),
+            aseprite: asset_server.load(sprites::Ferris::PATH),
             animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
                 scale: Vec3::splat(1.),
@@ -106,7 +108,7 @@ pub fn spawn_stupid_ferris(commands: &mut Commands, pos: Vec3) {
         .insert(TargetDistanceProbe { d: 0.0 });
 }
 
-pub fn setup(mut commands: Commands) {
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     // commands
@@ -136,6 +138,7 @@ pub fn setup(mut commands: Commands) {
         // );
         game1::brainy::spawn_brainy_ferris(
             &mut commands,
+            &asset_server,
             Vec3::new(
                 rng.sample(dist) + 600.0 / 4.0,
                 rng.sample(dist) + 400.0 / 4.0,
@@ -149,7 +152,7 @@ pub fn setup(mut commands: Commands) {
 
     commands
         .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Pointer::sprite(),
+            aseprite: asset_server.load(sprites::Pointer::PATH),
             // animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
                 scale: Vec3::splat(1.),
@@ -162,10 +165,10 @@ pub fn setup(mut commands: Commands) {
         .insert(MousePointerFlag);
 }
 
-fn spawn_player(commands: &mut Commands, translation: Vec3) {
+fn spawn_player(commands: &mut Commands, asset_server: &AssetServer, translation: Vec3) {
     commands
         .spawn_bundle(AsepriteBundle {
-            aseprite: sprites::Ferris::sprite(),
+            aseprite: asset_server.load(sprites::Ferris::PATH),
             animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
             transform: Transform {
                 scale: Vec3::splat(1.),
@@ -185,13 +188,9 @@ fn spawn_player(commands: &mut Commands, translation: Vec3) {
 
 fn setup_camera(
     windows: Res<Windows>,
-    mut query: Query<(&mut Transform, &mut OrthographicProjection, &Camera), Added<Camera>>,
+    mut query: Query<(&mut Transform, &mut OrthographicProjection, &Camera), Added<Camera2d>>,
 ) {
     for (mut transform, _projection, camera) in query.iter_mut() {
-        if camera.name != Some("camera_2d".into()) {
-            continue;
-        }
-
         let window = windows.get_primary().unwrap();
 
         // let z = transform.translation.z;
@@ -228,6 +227,7 @@ fn walk_to_target(
 
 fn apply_input(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut query: Query<(&mut CrabMoveWalker, &Transform), With<InputTarget>>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
@@ -255,7 +255,7 @@ fn apply_input(
             };
             commands
                 .spawn_bundle(AsepriteBundle {
-                    aseprite: sprites::Pew::sprite(),
+                    aseprite: asset_server.load(sprites::Pew::PATH),
                     animation: AsepriteAnimation::from(sprites::Pew::tags::GLITTER),
                     transform: Transform {
                         scale: Vec3::splat(1.),
@@ -287,9 +287,13 @@ fn apply_input(
     }
 }
 
-pub fn spawn_ferris_on_click(mut commands: Commands, mut click_events: EventReader<ClickEvent>) {
+pub fn spawn_ferris_on_click(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut click_events: EventReader<ClickEvent>,
+) {
     for event in click_events.iter() {
-        game1::brainy::spawn_brainy_ferris(&mut commands, event.pos, false);
+        game1::brainy::spawn_brainy_ferris(&mut commands, &asset_server, event.pos, false);
     }
 }
 
@@ -302,8 +306,12 @@ pub fn spawn_waypoint_on_click(mut commands: Commands, mut click_events: EventRe
     }
 }
 
-pub fn spawn_player_system(mut commands: Commands, query: Query<(), With<InputTarget>>) {
+pub fn spawn_player_system(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    query: Query<(), With<InputTarget>>,
+) {
     if query.is_empty() {
-        spawn_player(&mut commands, Vec3::new(40., 112., 5.));
+        spawn_player(&mut commands, &asset_server, Vec3::new(40., 112., 5.));
     }
 }

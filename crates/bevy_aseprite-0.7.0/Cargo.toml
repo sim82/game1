@@ -12,7 +12,7 @@
 [package]
 edition = "2021"
 name = "bevy_aseprite"
-version = "0.6.0"
+version = "0.7.0"
 exclude = ["assets/"]
 description = "Bevy aseprite loader"
 license = "MIT OR Apache-2.0"
@@ -21,16 +21,16 @@ resolver = "2"
 [dependencies.anyhow]
 version = "1.0.43"
 
-[dependencies.aseprite-reader2]
-version = "0.1.0"
-
 [dependencies.bevy]
-version = "0.6"
+version = "0.7"
 features = ["render"]
 default-features = false
 
 [dependencies.bevy_aseprite_derive]
+version = "0.2"
+
+[dependencies.bevy_aseprite_reader]
 version = "0.1"
 
 [dev-dependencies.bevy]
-version = "0.6"
+version = "0.7"

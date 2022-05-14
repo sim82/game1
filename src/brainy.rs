@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_aseprite::{AsepriteAnimation, AsepriteBundle};
+use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle};
 use bevy_egui::{egui, EguiContext};
 use big_brain::prelude::*;
 use rand::{prelude::SliceRandom, Rng};
@@ -30,7 +30,12 @@ mod tune {
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
 }
 
-pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: bool) {
+pub fn spawn_brainy_ferris(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    pos: Vec3,
+    inspect_target: bool,
+) {
     let mut rng = rand::thread_rng();
 
     let threshold = if inspect_target {
@@ -45,7 +50,7 @@ pub fn spawn_brainy_ferris(commands: &mut Commands, pos: Vec3, inspect_target: b
     // let _curious_max = curious_min + rng.sample(dist);
 
     let mut entity_commands = commands.spawn_bundle(AsepriteBundle {
-        aseprite: sprites::Ferris::sprite(),
+        aseprite: asset_server.load(sprites::Ferris::PATH),
         animation: AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT),
         transform: Transform {
             scale: Vec3::splat(1.),
@@ -105,6 +110,7 @@ impl Default for SpawnFerrisState {
 
 pub fn spawn_brainy_ferris_system(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     time: Res<Time>,
     mut egui_context: ResMut<EguiContext>,
     mut state: Local<SpawnFerrisState>,
@@ -141,7 +147,7 @@ pub fn spawn_brainy_ferris_system(
 
             for pos in waypoint_pos.choose_multiple(&mut rng, num_create) {
                 // FIXME: hardcoded z offset is crap
-                spawn_brainy_ferris(&mut commands, *pos + Vec3::Z * 5.0, first);
+                spawn_brainy_ferris(&mut commands, &asset_server, *pos + Vec3::Z * 5.0, first);
                 first = false;
             }
         }

@@ -29,10 +29,10 @@ pub mod tune {
 }
 pub mod sprites {
     use bevy_aseprite::aseprite;
-    aseprite!(pub Ferris, "assets/ferris2.0.aseprite");
-    aseprite!(pub Pointer, "assets/pointer.aseprite");
-    aseprite!(pub Pew, "assets/pew.aseprite");
-    aseprite!(pub Medikit, "assets/medikit.aseprite");
+    aseprite!(pub Ferris, "ferris2.0.aseprite");
+    aseprite!(pub Pointer, "pointer.aseprite");
+    aseprite!(pub Pew, "pew.aseprite");
+    aseprite!(pub Medikit, "medikit.aseprite");
 }
 
 #[derive(Component)]

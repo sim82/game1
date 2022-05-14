@@ -9,7 +9,7 @@ use crate::{
     tune,
 };
 use bevy::{prelude::*, sprite::collide_aabb::collide};
-use bevy_aseprite::AsepriteAnimation;
+use bevy_aseprite::anim::AsepriteAnimation;
 use bevy_ecs_tilemap::{MapQuery, Tile, TilePos};
 use bevy_prototype_debug_lines::DebugLines;
 
@@ -115,7 +115,7 @@ pub fn apply_velocity_system(
 
     for (entity, mut transform, mut animation, walk_velocity) in query.iter_mut() {
         if zapped_query.get(entity).is_ok() {
-            if !animation.is_tag(sprites::Ferris::tags::ZAP) {
+            if animation.tag != Some(sprites::Ferris::tags::ZAP.into()) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::ZAP)
             }
             continue;
@@ -152,16 +152,17 @@ pub fn apply_velocity_system(
             transform.translation += x_delta;
             transform.translation += y_delta;
             // animation.
-            if dir.x > 0.0 && !animation.is_tag(sprites::Ferris::tags::WALK_RIGHT) {
+            if dir.x > 0.0 && animation.tag != Some(sprites::Ferris::tags::WALK_RIGHT.into()) {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_RIGHT);
-            } else if dir.x < 0.0 && !animation.is_tag(sprites::Ferris::tags::WALK_LEFT) {
+            } else if dir.x < 0.0 && animation.tag != Some(sprites::Ferris::tags::WALK_LEFT.into())
+            {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_LEFT);
             } else if (dir.x == 0.0 && dir.y != 0.0)
-                && !animation.is_tag(sprites::Ferris::tags::WALK_CENTER)
+                && animation.tag != Some(sprites::Ferris::tags::WALK_CENTER.into())
             {
                 *animation = AsepriteAnimation::from(sprites::Ferris::tags::WALK_CENTER);
             }
-        } else if !animation.is_tag(sprites::Ferris::tags::STAND) {
+        } else if animation.tag != Some(sprites::Ferris::tags::STAND.into()) {
             *animation = AsepriteAnimation::from(sprites::Ferris::tags::STAND);
         }
     }

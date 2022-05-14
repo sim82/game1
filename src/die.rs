@@ -1,11 +1,12 @@
 use bevy::prelude::*;
-use bevy_aseprite::{AsepriteAnimation, AsepriteBundle, AsepriteInfo};
+use bevy_aseprite::{anim::AsepriteAnimation, Aseprite, AsepriteBundle};
 
 use crate::{ai::HealthPoints, sprites, Despawn};
 
 pub fn die_system(
     mut commands: Commands,
-    query: Query<(Entity, &HealthPoints, &Transform, &AsepriteInfo)>,
+    query: Query<(Entity, &HealthPoints, &Transform, &Handle<Aseprite>)>,
+    asset_server: Res<AssetServer>,
 ) {
     for (entity, health_points, transform, aseprite) in query.iter() {
         if health_points.health <= 0 {
@@ -13,9 +14,7 @@ pub fn die_system(
             commands
                 .spawn()
                 .insert_bundle(AsepriteBundle {
-                    aseprite: AsepriteInfo {
-                        path: aseprite.path.clone(),
-                    },
+                    aseprite: aseprite.clone(),
                     animation: AsepriteAnimation::from(sprites::Ferris::tags::DIE), // FIXME: this should be handled generic
                     transform: *transform,
                     ..Default::default()
