@@ -1,6 +1,6 @@
 #![feature(exclusive_range_pattern)]
-use bevy::prelude::*;
-use bevy_ecs_tilemap::{MapQuery, Tile};
+use bevy::{app::AppExit, prelude::*};
+// use bevy_ecs_tilemap::{MapQuery, Tile};
 use bevy_prototype_debug_lines::DebugLines;
 use hex::tilemap::{HexTileAppearance, HexTileCoord};
 use movement::crab_move::clip_movement;
@@ -116,5 +116,14 @@ pub fn despawn_reaper_system(
             info!("despawn {:?}", entity);
             commands.entity(entity).despawn_recursive();
         }
+    }
+}
+
+pub fn exit_on_esc_system(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut app_exit_events: EventWriter<AppExit>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        app_exit_events.send_default();
     }
 }

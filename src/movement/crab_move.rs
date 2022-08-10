@@ -10,7 +10,7 @@ use crate::{
 };
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 use bevy_aseprite::anim::AsepriteAnimation;
-use bevy_ecs_tilemap::{MapQuery, Tile, TilePos};
+// use bevy_ecs_tilemap::{MapQuery, Tile, TilePos};
 use bevy_prototype_debug_lines::DebugLines;
 
 use super::zap::BeingZapped;
@@ -196,7 +196,7 @@ pub fn clip_movement(
 
     // use very small player box to make clipping bearable
     let player_size = Vec2::new(6.0, 6.0);
-    debug_draw_box(debug_lines, translation + delta, player_size, Some(0.2));
+    // debug_draw_box(debug_lines, translation + delta, player_size, Some(0.2));
 
     // check collision with (non walkable) neighbor tiles
     for aabb in aabbs.iter() {

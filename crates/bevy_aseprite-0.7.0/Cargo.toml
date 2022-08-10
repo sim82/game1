@@ -22,7 +22,7 @@ resolver = "2"
 version = "1.0.43"
 
 [dependencies.bevy]
-version = "0.7"
+version = "0.8"
 features = ["render"]
 default-features = false
 

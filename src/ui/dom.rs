@@ -89,21 +89,20 @@ pub fn spawn_element(
                 style: Style {
                     flex_shrink: 0.,
                     size: Size::new(Val::Undefined, Val::Px(20.)),
-                    margin: Rect {
+                    margin: UiRect {
                         left: Val::Auto,
                         right: Val::Auto,
                         ..Default::default()
                     },
                     ..Default::default()
                 },
-                text: Text::with_section(
+                text: Text::from_section(
                     content.clone(),
                     TextStyle {
                         font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                         font_size: 20.,
                         color: Color::WHITE,
                     },
-                    Default::default(),
                 ),
                 ..Default::default()
             });

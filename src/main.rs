@@ -1,7 +1,4 @@
-use bevy::{
-    diagnostic::DiagnosticsPlugin, input::system::exit_on_esc_system, prelude::*,
-    render::camera::Camera2d,
-};
+use bevy::{diagnostic::DiagnosticsPlugin, prelude::*};
 // use bevy_aseprite::AsepritePlugin;
 use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 
@@ -12,6 +9,7 @@ use game1::{
     ai::{diagnostics::AiDiagnosticsPlugin, util::TargetDistanceProbe, AiPlugin, HealthPoints},
     brainy::spawn_brainy_ferris_system,
     die::die_system,
+    exit_on_esc_system,
     hex::tilemap::HexTilemapPlugin,
     item::{ItemContactProbe, ItemPlugin},
     movement::{
@@ -109,7 +107,7 @@ pub fn spawn_stupid_ferris(commands: &mut Commands, asset_server: &AssetServer, 
 }
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     // commands
     //     .spawn_bundle(AsepriteBundle {

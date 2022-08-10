@@ -132,7 +132,6 @@ fn _find_path_system(
 // and then have the finished path attached to a target entity (that would then react to this according to AI decisions).
 fn find_path_system_par(
     mut commands: Commands,
-    pool: Res<ComputeTaskPool>,
     graph: Res<WaypointGraph>,
     query: Query<(Entity, &PathQuery), Added<PathQuery>>,
     waypoint_query: Query<(Entity, &Transform), With<Waypoint>>,
@@ -140,7 +139,7 @@ fn find_path_system_par(
     let out = Mutex::new(Vec::<(WaypointPath, Entity)>::new());
     let start = bevy::utils::Instant::now();
     // scatter: do actual path finding in parallel
-    query.par_for_each(&pool, 16, |(path_query_entity, path_query)| {
+    query.par_for_each(/*&pool,*/ 16, |(path_query_entity, path_query)| {
         let mut start_entity = (f32::MAX, None);
         let mut end_entity = (f32::MAX, None);
 

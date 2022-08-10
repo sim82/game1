@@ -57,8 +57,7 @@ fn init_system(
 
     resources.base_entity = commands
         .spawn()
-        .insert(GlobalTransform::default())
-        .insert(Transform::default())
+        .insert_bundle(SpatialBundle::default())
         .id();
 
     if let Ok(init) = io::Tilemap::load("map.yaml") {
