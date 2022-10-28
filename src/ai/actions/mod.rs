@@ -10,7 +10,7 @@ pub mod shoot;
 
 // FIXME: this is a bit of a kludge to track the active action. It would be nice to get this
 // automatically either from the ecs or big_brain. Maybe look into AnyOf
-#[derive(Component, Clone, PartialEq)]
+#[derive(Component, Clone, PartialEq, Eq)]
 pub struct DebugAction {
     pub action: &'static str,
     pub state: ActionState,

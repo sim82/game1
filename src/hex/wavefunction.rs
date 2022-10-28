@@ -5,10 +5,7 @@ use bitvec::prelude::*;
 use multimap::MultiMap;
 use rand::prelude::*;
 
-use super::{
-    tilemap::{HexTileAppearance, HexTileCoord},
-    Cube, Hex, CUBE_DIRECTIONS,
-};
+use super::{Cube, CUBE_DIRECTIONS};
 
 #[derive(Clone)]
 struct Tile {
@@ -99,10 +96,9 @@ pub fn test(input_tiles: &HashMap<Cube, usize>) -> impl Iterator<Item = (Cube, u
         while let Some(d) = dirty.pop() {
             let dirty_tile = tiles.get(&d).unwrap();
             let allowed_states = dirty_tile.allowed.clone();
-            let d: Cube = d.into();
             for ndir in CUBE_DIRECTIONS.iter() {
                 let n = d + *ndir;
-                if let Some(neighbor_tile) = tiles.get_mut(&n.into()) {
+                if let Some(neighbor_tile) = tiles.get_mut(&n) {
                     let restrict = derive_neighbor_restriction(&allowed_states, &rules);
                     let (collapsed, changed) = neighbor_tile.apply_restrictions(&restrict);
                     if collapsed {
@@ -118,7 +114,7 @@ pub fn test(input_tiles: &HashMap<Cube, usize>) -> impl Iterator<Item = (Cube, u
     }
     let mut rng = rand::thread_rng();
     // uncollapsed = uncollapsed.difference(&remove_tiles);
-    let mut step_mode = true;
+    // let mut step_mode = true;
     while !uncollapsed.is_empty() {
         // let collapse_i = rng.gen_range(0..unstable.len());
         let collapse = *uncollapsed.iter().choose(&mut rng).unwrap();
@@ -133,10 +129,10 @@ pub fn test(input_tiles: &HashMap<Cube, usize>) -> impl Iterator<Item = (Cube, u
         while let Some(d) = dirty.pop() {
             let dirty_tile = tiles.get(&d).unwrap();
             let allowed_states = dirty_tile.allowed.clone();
-            let d: Cube = d.into();
+            // let d: Cube = d;
             for ndir in CUBE_DIRECTIONS.iter() {
                 let n = d + *ndir;
-                if let Some(neighbor_tile) = tiles.get_mut(&n.into()) {
+                if let Some(neighbor_tile) = tiles.get_mut(&n) {
                     let restrict = derive_neighbor_restriction(&allowed_states, &rules);
                     let (collapsed, changed) = neighbor_tile.apply_restrictions(&restrict);
                     if collapsed {

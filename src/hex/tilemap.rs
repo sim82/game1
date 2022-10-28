@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use bevy::{math::Vec3Swizzles, prelude::*};
-use bevy_prototype_debug_lines::DebugLines;
+use bevy::prelude::*;
 
-use crate::{hex::Cube, path, pointer::ClickEvent};
+use crate::{hex::Cube, path};
 
 use super::{
     editor::{background_on_click, tilemap_egui_ui_system, InteractionState},
@@ -121,7 +120,7 @@ fn spawn_sprites_system(
 
 pub fn pixel_to_pointy_hex(p: Vec3) -> Vec2 {
     let column_width = 18.0f32;
-    let column_half_width = column_width / 2.0;
+    // let column_half_width = column_width / 2.0;
 
     let row_height = 20.0 * 0.75;
     let major_y = (p.y / row_height).floor();

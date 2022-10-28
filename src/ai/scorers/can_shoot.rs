@@ -33,7 +33,7 @@ pub fn can_shoot_scorer_system(
                 translation: my_pos,
                 ..
             },
-            CrabMoveWalker { direction },
+            CrabMoveWalker { direction: _ },
             ammo,
         ) = my_query.get(*actor_entity).unwrap(); // FIXME
 
@@ -42,7 +42,7 @@ pub fn can_shoot_scorer_system(
             ..
         }) = player_query.get_single()
         {
-            let target_right = target_pos.x > my_pos.x;
+            let _target_right = target_pos.x > my_pos.x;
             let s = if ammo.ammo > 0.0 {
                 can_shoot
                     .evaluator

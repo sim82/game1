@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use bevy::{prelude::*, tasks::ComputeTaskPool};
+use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
 use pathfinding::prelude::*;
@@ -15,7 +15,7 @@ use crate::{
 #[derive(Component)]
 pub struct Waypoint;
 
-fn debug_draw_system(
+fn _debug_draw_system(
     mut debug_lines: ResMut<DebugLines>,
     query: Query<&Transform, With<Waypoint>>,
 ) {
@@ -196,7 +196,7 @@ fn find_path_system_par(
     }
 }
 
-fn print_new_path_system(
+fn _print_new_path_system(
     query: Query<&WaypointPath, Added<WaypointPath>>,
     waypoint_query: Query<&Transform, With<Waypoint>>,
     mut debug_lines: ResMut<DebugLines>,

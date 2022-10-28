@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::camera::CameraProjection};
+use bevy::prelude::*;
 
 use self::dom::{Div, Element};
 
@@ -39,7 +39,7 @@ fn add_tracking_overlays(
         dom::spawn_element(
             &div,
             commands,
-            &*asset_server,
+            &asset_server,
             &dom::get_stylesheet(),
             Some(entity),
         );
@@ -123,7 +123,7 @@ fn add_tracking_overlays(
 //     }
 // }
 
-fn ui_startup_system(mut commands: Commands) {
+fn ui_startup_system(mut _commands: Commands) {
     // commands.spawn_bundle(UiCameraBundle::default());
 }
 pub struct IngameUiPlugin;

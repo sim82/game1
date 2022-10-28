@@ -1,12 +1,10 @@
 use std::ops::Range;
 
 use crate::{
-    debug::{debug_draw_box, debug_draw_cross},
+    debug::debug_draw_box,
     hex::tilemap::{HexTileAppearance, HexTileCoord},
     pointer::MouseGrabState,
-    sprites,
-    tilemap::{hex_neighbors, pixel_to_pointy_hex, pointy_hex_to_aabb},
-    tune,
+    sprites, tune,
 };
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 use bevy_aseprite::anim::AsepriteAnimation;

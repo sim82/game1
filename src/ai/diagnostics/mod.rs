@@ -6,13 +6,13 @@ pub struct DiagnosticsTarget(Vec<(Entity, Entity)>);
 
 // mixed experiments for extracting diagnostic info from big_brain Actors (strictly for debug visualization etc.)
 
-fn show_scores_system(query: Query<(&Actor, &Name)>) {
+fn _show_scores_system(query: Query<(&Actor, &Name)>) {
     for (score, name) in query.iter() {
         info!("score: {:?} {:?}", score, name);
     }
 }
 
-fn select_actions_system(mut targets: ResMut<DiagnosticsTarget>, query: Query<(Entity, &Actor)>) {
+fn _select_actions_system(mut targets: ResMut<DiagnosticsTarget>, query: Query<(Entity, &Actor)>) {
     targets.0.clear();
     for (entity, Actor(actor_entity)) in query.iter() {
         // entity
@@ -21,9 +21,9 @@ fn select_actions_system(mut targets: ResMut<DiagnosticsTarget>, query: Query<(E
     }
 }
 
-fn show_actions_system(world: &mut World) {
+fn _show_actions_system(world: &mut World) {
     if let Some(DiagnosticsTarget(entities)) = world.get_resource::<DiagnosticsTarget>() {
-        for (entity, actor_entity) in entities.iter() {
+        for (entity, _actor_entity) in entities.iter() {
             if let Some(entity_ref) = world.get_entity(*entity) {
                 for component_id in entity_ref.archetype().table_components().iter() {
                     if let Some(info) = world.components().get_info(*component_id) {

@@ -6,7 +6,7 @@ use crate::{ai::HealthPoints, sprites, Despawn};
 pub fn die_system(
     mut commands: Commands,
     query: Query<(Entity, &HealthPoints, &Transform, &Handle<Aseprite>)>,
-    asset_server: Res<AssetServer>,
+    _asset_server: Res<AssetServer>,
 ) {
     for (entity, health_points, transform, aseprite) in query.iter() {
         if health_points.health <= 0 {

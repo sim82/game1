@@ -4,7 +4,7 @@ use big_brain::{
     prelude::*,
 };
 
-use crate::{ai::util::Ammo, movement::crab_move::CrabMoveWalker, tune, TargetFlag};
+use crate::{movement::crab_move::CrabMoveWalker, TargetFlag};
 
 #[derive(Component, Debug, Clone)]
 pub struct Crowdiness {
@@ -21,7 +21,7 @@ impl Default for Crowdiness {
 
 pub fn crowdiness_scorer_system(
     mut query: Query<(&Actor, &mut Score, &Crowdiness)>,
-    player_query: Query<&Transform, With<TargetFlag>>,
+    _player_query: Query<&Transform, With<TargetFlag>>,
     my_query: Query<&Transform, With<CrabMoveWalker>>,
 ) {
     let positions = my_query

@@ -2,7 +2,6 @@ use bevy::{prelude::*, render::render_resource::TextureUsages};
 use bevy_ecs_tilemap::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
-use std::collections::HashSet;
 
 use crate::{
     ai::inspect::AiInspectTarget,
@@ -129,7 +128,7 @@ fn _pixel_to_pointy_hex2(p: Vec3) -> (i32, i32) {
     if ((column ^ row) & 1) == 0 {
         dx = b - dx;
     }
-    let right = if dx * (a - c) < b * (dy - c) { 1 } else { 0 };
+    let right = i32::from(dx * (a - c) < b * (dy - c));
 
     // Now we have all the information we need, just fine-tune row and column.
     column += (row ^ column ^ right) & 1;
@@ -139,19 +138,17 @@ fn _pixel_to_pointy_hex2(p: Vec3) -> (i32, i32) {
     (column, row)
 }
 
-fn background_on_click(
+fn _background_on_click(
     mut commands: Commands,
     mut click_events: EventReader<ClickEvent>,
     mut debug_lines: ResMut<DebugLines>,
     interaction_state: Res<InteractionState>,
     // mut map_query: MapQuery,
     mut tilemap_query: Query<(Entity, &mut TileStorage)>,
-    mut tile_query: Query<&mut TileTexture>,
+    mut _tile_query: Query<&mut TileTexture>,
 
     ai_inspect_query: Query<(Entity, &Transform), With<AiInspectTarget>>,
 ) {
-    let map_id = 0u16;
-    let layer_id = 0u16;
     let (tilemap_entity, mut tile_storage) = tilemap_query.get_single_mut().unwrap();
 
     for event in click_events.iter() {

@@ -1,6 +1,5 @@
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_egui::{egui, EguiContext};
-use bevy_prototype_debug_lines::DebugLines;
 
 use crate::{hex::Cube, pointer::ClickEvent};
 
@@ -32,7 +31,6 @@ pub struct InteractionState {
 }
 
 pub fn tilemap_egui_ui_system(
-    mut commands: Commands,
     mut egui_context: ResMut<EguiContext>,
     query: Query<(Entity, &HexTileCoord, &HexTileAppearance)>,
     mut interaction_state: ResMut<InteractionState>,
@@ -58,7 +56,6 @@ pub fn tilemap_egui_ui_system(
         // do_spawn_waypoints = ui.button("-> waypoints").clicked();
     });
 
-    let mut do_notify_chunks = false;
     // if do_clear {
     //     map_query.despawn_layer_tiles(&mut commands, 0u16, 0u16);
     //     do_notify_chunks = true;
@@ -92,11 +89,11 @@ pub fn tilemap_egui_ui_system(
 pub fn background_on_click(
     mut commands: Commands,
     mut click_events: EventReader<ClickEvent>,
-    mut debug_lines: ResMut<DebugLines>,
+    // mut debug_lines: ResMut<DebugLines>,
     resources: Res<Resources>,
     interaction_state: Res<InteractionState>,
     // mut map_query: MapQuery,
-    ai_inspect_query: Query<(&HexTileCoord)>,
+    // ai_inspect_query: Query<(&HexTileCoord)>,
 ) {
     for event in click_events.iter() {
         // let pos = pixel_to_pointy_hex(event.pos - resources.tile_size.extend(0.0) * -0.5);

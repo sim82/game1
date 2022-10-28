@@ -4,9 +4,7 @@ use big_brain::prelude::*;
 use crate::{
     ai::util::TargetDistanceProbe,
     movement::{
-        control::MovementGoToPoint,
-        crab_controller::CrabFollowPath,
-        crab_move::{CrabMoveDirection, CrabMoveWalker},
+        control::MovementGoToPoint, crab_controller::CrabFollowPath, crab_move::CrabMoveWalker,
     },
     TargetFlag,
 };
@@ -33,13 +31,13 @@ pub fn follow_action_system(
         .map(|t| t.translation)
         .unwrap_or_default();
 
-    for (Actor(actor), mut state, go_to_target) in query.iter_mut() {
+    for (Actor(actor), mut state, _go_to_target) in query.iter_mut() {
         commands
             .entity(*actor)
             .insert(DebugAction::new("follow", state.clone()));
 
         // Use the drink_action's actor to look up the corresponding Thirst Component.
-        if let Ok((transform, target_distance, mut walker)) = walkers.get_mut(*actor) {
+        if let Ok((_transform, _target_distancee, mut _walker)) = walkers.get_mut(*actor) {
             match *state {
                 ActionState::Requested => {
                     // println!("Time to follow the target!");

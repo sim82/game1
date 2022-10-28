@@ -16,7 +16,7 @@ pub struct GotoMedikit {
 pub fn goto_medikit_action_system(
     mut commands: Commands,
     mut query: Query<(&Actor, &mut ActionState, &mut GotoMedikit)>,
-    mut actor_query: Query<&Transform>,
+    actor_query: Query<&Transform>,
     medikit_query: Query<&Transform, With<Medikit>>,
     go_to_point_query: Query<(), With<MovementGoToPoint>>,
 ) {

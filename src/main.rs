@@ -190,7 +190,7 @@ fn setup_camera(
     windows: Res<Windows>,
     mut query: Query<(&mut Transform, &mut OrthographicProjection, &Camera), Added<Camera2d>>,
 ) {
-    for (mut transform, _projection, camera) in query.iter_mut() {
+    for (mut transform, _projection, _camera) in query.iter_mut() {
         let window = windows.get_primary().unwrap();
 
         // let z = transform.translation.z;
