@@ -1,4 +1,4 @@
-use bevy::{diagnostic::DiagnosticsPlugin, prelude::*};
+use bevy::{diagnostic::DiagnosticsPlugin, prelude::*, render::texture::ImageSettings};
 // use bevy_aseprite::AsepritePlugin;
 use bevy_aseprite::{anim::AsepriteAnimation, AsepriteBundle, AsepritePlugin};
 
@@ -33,6 +33,7 @@ fn main() {
     app.insert_resource(WindowDescriptor {
         ..Default::default()
     });
+    app.insert_resource(ImageSettings::default_nearest());
     //
     // external plugins
     //
