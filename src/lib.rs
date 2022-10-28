@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 #![feature(exclusive_range_pattern)]
 use bevy::{app::AppExit, prelude::*};
 // use bevy_ecs_tilemap::{MapQuery, Tile};

@@ -157,7 +157,7 @@ impl Hex {
         // let col = self.q as f32 + (self.r - (self.r & 1)) as f32 * 0.5;
         let col = (self.q + self.r) as f32 - (self.r & 1) as f32 * 0.5;
         let row = self.r as f32 * 0.75;
-        Vec2::new(col as f32, row as f32)
+        Vec2::new(col, row)
     }
     pub fn from_odd_r(v: Vec2) -> Self {
         let vx = v.x as i32;
