@@ -14,15 +14,16 @@ inspector = ["bevy-inspector-egui"]
 [dependencies]
 # bevy = { version = "0.6", features = [] }
 #bevy_aseprite = "0.6"
-bevy = { version = "0.8", features = ["dynamic"] }
+# bevy = { version = "0.8", features = ["dynamic"] }
+bevy = { version = "0.8" }
 bevy_aseprite = { path = "crates/bevy_aseprite-0.7.0" }
 # bevy_aseprite = "0.7"
 bevy_asset_loader = "0.12"
 bevy_ecs_tilemap = "0.7"
 bevy_prototype_debug_lines = "0.8"
-bevy-inspector-egui = { version = "0.12", optional = true }
-bevy_egui = "0.15"
-big-brain = "0.12"
+bevy-inspector-egui = { version = "0.13", optional = true }
+bevy_egui = "0.16"
+big-brain = "0.14"
 rand = "0.8"
 rand_distr = "0.4"
 rtriangulate = "0.3"

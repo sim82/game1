@@ -43,6 +43,7 @@ fn main() {
         .add_plugin(BigBrainPlugin)
         .add_plugin(bevy_prototype_debug_lines::DebugLinesPlugin::with_depth_test(true))
         .add_plugin(EguiPlugin);
+
     //
     // internal plugins
     //
