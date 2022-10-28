@@ -19,7 +19,7 @@ bevy = { version = "0.8" }
 bevy_aseprite = { path = "crates/bevy_aseprite-0.7.0" }
 # bevy_aseprite = "0.7"
 bevy_asset_loader = "0.12"
-bevy_ecs_tilemap = "0.7"
+bevy_ecs_tilemap = "0.8"
 bevy_prototype_debug_lines = "0.8"
 bevy-inspector-egui = { version = "0.13", optional = true }
 bevy_egui = "0.16"

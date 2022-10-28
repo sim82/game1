@@ -19,7 +19,7 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     info!("startup tilemap");
 
-    let texture = TilemapTexture(asset_server.load("pointy_hex_tiles_18x20.png"));
+    let texture = TilemapTexture::Single(asset_server.load("pointy_hex_tiles_18x20.png"));
 
     let size = TilemapSize { x: 128, y: 128 };
 
@@ -29,13 +29,13 @@ fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_size = TilemapTileSize { x: 18.0, y: 20.0 };
     let grid_size = TilemapGridSize { x: 18.0, y: 20.0 };
 
-    let mesh_type = TilemapMeshType::Hexagon(HexType::Row);
+    let map_type = TilemapType::Hexagon(HexCoordSystem::Row);
     // let transform = Transform::from_xyz(-256.0, -256.0, 0.0).with_scale(Vec3::splat(1.0));
 
-    let transform = bevy_ecs_tilemap::helpers::get_centered_transform_2d(&size, &tile_size, 0.0);
+    let transform = get_tilemap_center_transform(&size, &grid_size, 0.0);
     commands.entity(map_entity).insert_bundle(TilemapBundle {
         grid_size,
-        mesh_type,
+        map_type,
         size,
         storage,
         texture,
@@ -183,7 +183,7 @@ fn background_on_click(
                             ..Default::default()
                         })
                         .id();
-                    tile_storage.set(&tile_pos, Some(tile_ent));
+                    tile_storage.set(&tile_pos, tile_ent);
                     tile_ent
                 };
 
@@ -427,7 +427,7 @@ fn spawn_tilemap(
             })
             .insert(Name::new("tile"))
             .id();
-        tile_storage.set(&tile_pos, Some(tile_ent));
+        tile_storage.set(&tile_pos, tile_ent);
         // map_query
         //     .set_tile(
         //         commands,
