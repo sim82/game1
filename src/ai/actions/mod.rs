@@ -42,7 +42,7 @@ pub mod pick_goto_pos {
         medikit_query: Query<&Transform, With<Medikit>>,
     ) {
         for (Actor(actor), mut state, mut pick_goto_pos) in query.iter_mut() {
-            debug!("pick: {:?} {:?}", state, pick_goto_pos.target);
+            info!("pick: {:?} {:?}", state, pick_goto_pos.target);
             let Transform {
                 translation: actor_pos,
                 ..
@@ -141,7 +141,7 @@ pub mod goto_pos {
         waypoint_query: Query<&Transform, With<Waypoint>>,
     ) {
         for (Actor(actor), mut state, mut goto_pos) in query.iter_mut() {
-            // info!("goto: {:?}", state);
+            // info!("goto pos: {:?}", state);
             let Transform {
                 translation: actor_pos,
                 ..
@@ -273,6 +273,160 @@ pub mod wait {
                 ActionState::Executing => {
                     wait.timeout.tick(time.delta());
                     if wait.timeout.finished() {
+                        *state = ActionState::Success;
+                    }
+                }
+                ActionState::Cancelled => {
+                    *state = ActionState::Failure;
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+pub mod go_direction {
+    use std::ops::Range;
+
+    use bevy::prelude::*;
+    use big_brain::prelude::*;
+    use rand::prelude::*;
+
+    use crate::{
+        movement::{
+            control::MovementGoToPoint,
+            crab_controller::CrabFollowPath,
+            crab_move::{CrabMoveDirection, CrabMoveWalker},
+        },
+        path::Waypoint,
+    };
+
+    use super::DebugAction;
+
+    #[derive(Component, Debug, Clone)]
+    pub struct ActionGoDirection {
+        timeout: Timer,
+        direction: CrabMoveDirection,
+    }
+
+    impl ActionGoDirection {
+        pub fn new(duration: f32, direction: CrabMoveDirection) -> Self {
+            Self {
+                timeout: Timer::from_seconds(duration, false),
+                direction,
+            }
+        }
+    }
+
+    pub fn action_go_direction_system(
+        mut commands: Commands,
+        time: Res<Time>,
+        mut query: Query<(&Actor, &mut ActionState, &mut ActionGoDirection)>,
+        mut walker_query: Query<&mut CrabMoveWalker>,
+    ) {
+        for (Actor(actor), mut state, mut go_direction) in query.iter_mut() {
+            // info!("wait: {:?}", state);
+
+            match *state {
+                ActionState::Requested => {
+                    commands
+                        .entity(*actor)
+                        .insert(DebugAction::new("go direction", state.clone()));
+
+                    if let Ok(mut walker) = walker_query.get_mut(*actor) {
+                        walker.direction = go_direction.direction;
+                    }
+                    *state = ActionState::Executing;
+                }
+                ActionState::Executing => {
+                    go_direction.timeout.tick(time.delta());
+                    if go_direction.timeout.finished() {
+                        *state = ActionState::Success;
+                    }
+                }
+                ActionState::Cancelled => {
+                    *state = ActionState::Failure;
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+pub mod go_script {
+    use std::{collections::VecDeque, ops::Range};
+
+    use bevy::prelude::*;
+    use big_brain::prelude::*;
+    use rand::prelude::*;
+
+    use crate::{
+        movement::{
+            control::MovementGoToPoint,
+            crab_controller::CrabFollowPath,
+            crab_move::{CrabMoveDirection, CrabMoveWalker},
+        },
+        path::Waypoint,
+    };
+
+    use super::DebugAction;
+
+    #[derive(Component, Debug, Clone)]
+    pub struct ActionGoScript {
+        steps: VecDeque<(CrabMoveDirection, Timer)>,
+    }
+
+    impl ActionGoScript {
+        pub fn repeat(steps: &[(CrabMoveDirection, f32)], repeat: Range<usize>) -> Self {
+            let repeat = thread_rng().gen_range(repeat);
+            Self {
+                steps: std::iter::repeat(steps)
+                    .take(repeat)
+                    .flatten()
+                    .map(|(direction, duration)| {
+                        (*direction, Timer::from_seconds(*duration, false))
+                    })
+                    .collect(),
+            }
+        }
+    }
+
+    pub fn action_go_script_system(
+        mut commands: Commands,
+        time: Res<Time>,
+        mut query: Query<(&Actor, &mut ActionState, &mut ActionGoScript)>,
+        mut walker_query: Query<&mut CrabMoveWalker>,
+    ) {
+        for (Actor(actor), mut state, mut go_direction) in query.iter_mut() {
+            // info!("wait: {:?}", state);
+
+            match *state {
+                ActionState::Requested => {
+                    commands
+                        .entity(*actor)
+                        .insert(DebugAction::new("go script", state.clone()));
+
+                    if let Ok(mut walker) = walker_query.get_mut(*actor) {
+                        if let Some(step) = go_direction.steps.front() {
+                            walker.direction = step.0;
+                        }
+                    }
+                    *state = ActionState::Executing;
+                }
+                ActionState::Executing => {
+                    if let Some(step) = go_direction.steps.front_mut() {
+                        step.1.tick(time.delta());
+                        if step.1.finished() {
+                            go_direction.steps.pop_front();
+
+                            if let Some(step) = go_direction.steps.front_mut() {
+                                if let Ok(mut walker) = walker_query.get_mut(*actor) {
+                                    walker.direction = step.0;
+                                }
+                            }
+                        }
+                    }
+                    if go_direction.steps.is_empty() {
                         *state = ActionState::Success;
                     }
                 }

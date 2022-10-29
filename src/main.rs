@@ -197,8 +197,8 @@ fn setup_camera(
         // let z = transform.translation.z;
         transform.translation.x = window.width() / 8.0;
         transform.translation.y = window.height() / 8.0;
-        transform.scale.x = 0.25;
-        transform.scale.y = 0.25;
+        transform.scale.x = 0.5;
+        transform.scale.y = 0.5;
     }
 }
 

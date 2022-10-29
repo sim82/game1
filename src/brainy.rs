@@ -9,6 +9,8 @@ use crate::{
         actions::{
             dodge_pew::DodgePew,
             follow::Follow,
+            go_direction::ActionGoDirection,
+            go_script::ActionGoScript,
             goto_medikit::GotoMedikit,
             goto_pos::ActionGotoPos,
             jiggle_around::JiggleAround,
@@ -30,7 +32,10 @@ use crate::{
         HealthPoints,
     },
     item::ItemContactProbe,
-    movement::{crab_move::CrabMoveWalker, zap::Zappable},
+    movement::{
+        crab_move::{CrabMoveDirection, CrabMoveWalker},
+        zap::Zappable,
+    },
     path::Waypoint,
     sprites,
 };
@@ -45,7 +50,13 @@ fn new_brainy_thinker() -> ThinkerBuilder {
     let idle_steps = Steps::build()
         .step(ActionPickGotoPos::new(TargetPos::Random))
         .step(ActionGotoPos::default())
-        .step(ActionWait::range(2.0..4.0));
+        .step(ActionGoScript::repeat(
+            &[
+                (CrabMoveDirection::East, 0.2),
+                (CrabMoveDirection::West, 0.2),
+            ],
+            5..10,
+        ));
 
     let find_medikit_steps = Steps::build()
         .step(ActionPickGotoPos::new(TargetPos::Medikit))
@@ -157,12 +168,12 @@ pub fn spawn_brainy_ferris_system(
     }
 
     egui::Window::new("ferris").show(egui_context.ctx_mut(), |ui| {
-        ui.add(egui::Slider::new(&mut state.ferris_count, 1..=50000));
+        ui.add(egui::Slider::new(&mut state.ferris_count, 1..=100));
     });
 
     let count = query.iter().count();
     let mut first = count == 0;
-    info!("count: {} {}", count, state.ferris_count);
+    // info!("count: {} {}", count, state.ferris_count);
     #[allow(clippy::comparison_chain)]
     match count.cmp(&state.ferris_count) {
         std::cmp::Ordering::Less => {

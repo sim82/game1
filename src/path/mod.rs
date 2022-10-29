@@ -175,6 +175,8 @@ fn find_path_system_par(
                 if let Ok(mut out) = out.lock() {
                     out.push((waypoint_path, path_query_entity));
                 }
+            } else {
+                warn!("no path found. waypoints not connected!");
             }
         }
     });
@@ -197,13 +199,13 @@ fn find_path_system_par(
     }
 }
 
-fn _print_new_path_system(
-    query: Query<&WaypointPath, Added<WaypointPath>>,
+fn print_new_path_system(
+    query: Query<&WaypointPath>,
     waypoint_query: Query<&Transform, With<Waypoint>>,
     mut debug_lines: ResMut<DebugLines>,
 ) {
     for path in query.iter() {
-        info!("path: {:?}", path);
+        // debug!("path: {:?}", path);
 
         for p in path.waypoints.windows(2) {
             let start = waypoint_query.get(p[0]).unwrap();
@@ -214,7 +216,7 @@ fn _print_new_path_system(
                 &mut debug_lines,
                 start.translation + offs,
                 end.translation + offs,
-                Some(10.0),
+                None,
             );
         }
     }
@@ -316,13 +318,12 @@ pub struct PathPlugin;
 impl Plugin for PathPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WaypointGraph>()
-        .add_startup_system(startup_system)
+            .add_startup_system(startup_system)
             .add_system(path_egui_ui_system)
             // .add_system(debug_draw_system)
             .add_system(update_graph_system)
             .add_system(find_path_system_par)
             .add_system(grab_waypoints)
-            // .add_system(print_new_path_system)
-            ;
+            .add_system(print_new_path_system);
     }
 }

@@ -3,6 +3,8 @@ use big_brain::BigBrainStage;
 
 use crate::ai::{
     actions::{
+        go_direction::action_go_direction_system,
+        go_script::action_go_script_system,
         goto_pos::action_goto_pos_system,
         pick_goto_pos::{self, action_pick_goto_pos_system},
         wait::action_wait_system,
@@ -58,6 +60,8 @@ impl Plugin for AiPlugin {
             .add_system_to_stage(BigBrainStage::Actions, action_pick_goto_pos_system)
             .add_system_to_stage(BigBrainStage::Actions, action_goto_pos_system)
             .add_system_to_stage(BigBrainStage::Actions, action_wait_system)
+            .add_system_to_stage(BigBrainStage::Actions, action_go_direction_system)
+            .add_system_to_stage(BigBrainStage::Actions, action_go_script_system)
             // scorers
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)
