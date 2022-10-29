@@ -132,6 +132,7 @@ pub fn apply_velocity_system(
             let x_delta = Vec3::new(delta.x, 0.0, 0.0);
             let y_delta = Vec3::new(0.0, delta.y, 0.0);
 
+            // FIXME: the clip code is horribly inefficient (it will become the main bottleneck at about 10000-20000 movers)
             let x_delta = clip_movement(
                 &mut debug_lines,
                 &tile_query2,

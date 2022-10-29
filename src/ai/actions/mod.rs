@@ -119,6 +119,7 @@ pub mod goto_pos {
     pub struct ActionGotoPos {
         next_step_timeout: Timer,
         next_step: usize,
+        check_timeout: Timer,
     }
 
     impl Default for ActionGotoPos {
@@ -126,6 +127,7 @@ pub mod goto_pos {
             Self {
                 next_step: 0,
                 next_step_timeout: Timer::from_seconds(2.0, false),
+                check_timeout: Timer::from_seconds(0.1, true),
             }
         }
     }
@@ -170,33 +172,38 @@ pub mod goto_pos {
                             *state = ActionState::Success;
                             continue;
                         }
-                        let min_dist = 6.0;
-                        if let Ok(Transform {
-                            translation: waypoint_translation,
-                            ..
-                        }) = waypoint_query.get(waypoints[goto_pos.next_step])
-                        {
-                            let d = *waypoint_translation - *actor_pos;
-                            let tv = d.normalize();
-                            walker.direction = CrabMoveDirection::find_nearest(tv);
-                            debug!(
-                                "follow path progress: {} {} {:?}",
-                                goto_pos.next_step,
-                                d.length(),
-                                waypoint_translation
-                            );
 
-                            if d.length() < min_dist {
-                                // info!("follow path next step: {}", follow_path.next_step);
-                                goto_pos.next_step += 1;
-                                goto_pos.next_step_timeout.reset();
-                            }
+                        goto_pos.check_timeout.tick(time.delta());
 
-                            goto_pos.next_step_timeout.tick(time.delta());
-                            if goto_pos.next_step_timeout.finished() {
-                                warn!("timeout reaching next step -> failure");
-                                *state = ActionState::Failure;
-                                continue;
+                        if goto_pos.check_timeout.finished() {
+                            let min_dist = 6.0;
+                            if let Ok(Transform {
+                                translation: waypoint_translation,
+                                ..
+                            }) = waypoint_query.get(waypoints[goto_pos.next_step])
+                            {
+                                let d = *waypoint_translation - *actor_pos;
+                                let tv = d.normalize();
+                                walker.direction = CrabMoveDirection::find_nearest(tv);
+                                debug!(
+                                    "follow path progress: {} {} {:?}",
+                                    goto_pos.next_step,
+                                    d.length(),
+                                    waypoint_translation
+                                );
+
+                                if d.length() < min_dist {
+                                    // info!("follow path next step: {}", follow_path.next_step);
+                                    goto_pos.next_step += 1;
+                                    goto_pos.next_step_timeout.reset();
+                                }
+
+                                goto_pos.next_step_timeout.tick(time.delta());
+                                if goto_pos.next_step_timeout.finished() {
+                                    warn!("timeout reaching next step -> failure");
+                                    *state = ActionState::Failure;
+                                    continue;
+                                }
                             }
                         }
                     }
