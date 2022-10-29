@@ -21,21 +21,14 @@ pub struct HexTileCoord {
     pub cube: Cube,
 }
 
+#[derive(Default)]
 pub struct Resources {
-    pub base_entity: Entity,
     pub texture_atlas: Handle<TextureAtlas>,
     pub tile_size: Vec2,
 }
 
-impl Default for Resources {
-    fn default() -> Self {
-        Self {
-            base_entity: Entity::from_raw(0), // FIXME: this is set in the init_system, but I'm too lazy for Option<>
-            texture_atlas: Default::default(),
-            tile_size: Default::default(),
-        }
-    }
-}
+#[derive(Component)]
+struct HexTileParent;
 
 fn init_system(
     mut commands: Commands,
@@ -54,11 +47,6 @@ fn init_system(
     //     ..Default::default()
     // });
 
-    resources.base_entity = commands
-        .spawn()
-        .insert_bundle(SpatialBundle::default())
-        .id();
-
     if let Ok(init) = io::Tilemap::load("map.yaml") {
         let tiles: HashMap<Cube, usize> = init
             .tiles
@@ -71,13 +59,9 @@ fn init_system(
 
         for (cube, tile_type) in wavefunction::test(&tiles) {
             commands
-                .entity(resources.base_entity)
-                .with_children(|commands| {
-                    commands
-                        .spawn()
-                        .insert(HexTileCoord { cube })
-                        .insert(HexTileAppearance { tile_type });
-                });
+                .spawn()
+                .insert(HexTileCoord { cube })
+                .insert(HexTileAppearance { tile_type });
         }
     }
 }
@@ -93,7 +77,7 @@ fn spawn_sprites_system(
 ) {
     for (entity, coord, apperance) in query.iter() {
         let coord_screen = coord.cube.to_odd_r_screen() * resources.tile_size;
-        info!("coord_screen: {:?}", coord_screen);
+        debug!("coord_screen: {:?}", coord_screen);
         let index = apperance.tile_type;
         // commands.entity(entity).with_children(|commands| {
         commands.entity(entity).insert_bundle(SpriteSheetBundle {
@@ -136,6 +120,7 @@ pub fn pixel_to_pointy_hex(p: Vec3) -> Vec2 {
 fn spawn_waypoints_system(
     query: Query<(Entity, &HexTileCoord, &HexTileAppearance), Added<HexTileAppearance>>,
     resources: Res<Resources>,
+    // waypoint_graph
     mut commands: Commands,
 ) {
     for (_entity, tile_pos, tile) in query.iter() {
@@ -151,6 +136,31 @@ fn spawn_waypoints_system(
     }
 }
 
+fn grab_hex_tiles(
+    mut commands: Commands,
+    new_tiles_query: Query<Entity, Added<HexTileCoord>>,
+    parent_query: Query<Entity, With<HexTileParent>>,
+) {
+    if new_tiles_query.is_empty() {
+        return;
+    }
+
+    let mut parent = if let Ok(parent) = parent_query.get_single() {
+        commands.entity(parent)
+    } else {
+        let mut entity_commands = commands.spawn();
+
+        entity_commands
+            .insert(HexTileParent)
+            .insert(Name::new("hex_tiles"));
+        entity_commands
+    };
+
+    for entity in &new_tiles_query {
+        parent.add_child(entity);
+    }
+}
+
 pub struct HexTilemapPlugin;
 
 impl Plugin for HexTilemapPlugin {
@@ -163,6 +173,7 @@ impl Plugin for HexTilemapPlugin {
             .add_system(spawn_sprites_system)
             .add_system(spawn_waypoints_system)
             .add_system(background_on_click)
-            .add_system(tilemap_egui_ui_system);
+            .add_system(tilemap_egui_ui_system)
+            .add_system_to_stage(CoreStage::Last, grab_hex_tiles);
     }
 }

@@ -111,12 +111,8 @@ pub fn background_on_click(
         };
 
         commands
-            .entity(resources.base_entity)
-            .with_children(|commands| {
-                commands
-                    .spawn()
-                    .insert(HexTileCoord { cube })
-                    .insert(HexTileAppearance { tile_type });
-            });
+            .spawn()
+            .insert(HexTileCoord { cube })
+            .insert(HexTileAppearance { tile_type });
     }
 }

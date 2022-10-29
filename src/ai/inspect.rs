@@ -5,6 +5,7 @@ use bevy_egui::{
     egui::{self, RichText},
     EguiContext,
 };
+use big_brain::thinker::Scorer;
 
 use crate::{
     movement::{
@@ -58,6 +59,7 @@ pub fn ai_inspect_egui_system(
     zapped_query: Query<(), (With<BeingZapped>, With<AiInspectTarget>)>,
     goto_point_query: Query<&MovementGoToPoint>,
     ammo_query: Query<&Ammo, With<AiInspectTarget>>,
+    // scorer_query: Query<&Scorer>,
 ) {
     for action in action_query.iter() {
         if Some(action) != state.debug_action.back() {
@@ -104,5 +106,8 @@ pub fn ai_inspect_egui_system(
         for action in state.debug_action.iter() {
             ui.label(format!("action: {} {:?}", action.action, action.state));
         }
+        // for scorer in scorer_query.iter() {
+        //     ui.label(format!("score: {scorer.get_score()}"))
+        // }
     });
 }

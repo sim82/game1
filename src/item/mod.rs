@@ -40,12 +40,41 @@ fn item_contact_system(
     }
 }
 
+#[derive(Component)]
+struct ItemsParent;
+
+fn grab_items_system(
+    mut commands: Commands,
+    new_items_query: Query<Entity, Added<Item>>,
+    parent_query: Query<Entity, With<ItemsParent>>,
+) {
+    if new_items_query.is_empty() {
+        return;
+    }
+
+    let mut parent = if let Ok(parent) = parent_query.get_single() {
+        commands.entity(parent)
+    } else {
+        let mut entity_commands = commands.spawn();
+
+        entity_commands
+            .insert(ItemsParent)
+            .insert(Name::new("items"));
+        entity_commands
+    };
+
+    for entity in &new_items_query {
+        parent.add_child(entity);
+    }
+}
+
 pub struct ItemPlugin;
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(medikit::pick_medikit_system)
             .add_system(medikit::spawn_medikits_system)
-            .add_system(item_contact_system);
+            .add_system(item_contact_system)
+            .add_system_to_stage(CoreStage::Last, grab_items_system);
     }
 }

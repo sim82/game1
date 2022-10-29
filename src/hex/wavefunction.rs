@@ -122,7 +122,7 @@ pub fn test(input_tiles: &HashMap<Cube, usize>) -> impl Iterator<Item = (Cube, u
 
         let tile = tiles.get_mut(&collapse).unwrap();
 
-        info!("allowed: {:?}", tile.allowed);
+        debug!("allowed: {:?}", tile.allowed);
         tile.collapse(&weights);
 
         let mut dirty = vec![collapse];

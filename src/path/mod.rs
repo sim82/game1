@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use bevy::prelude::*;
+use bevy::{ecs::system::Resource, prelude::*};
 use bevy_egui::{egui, EguiContext};
 use bevy_prototype_debug_lines::DebugLines;
 use pathfinding::prelude::*;
@@ -68,7 +68,7 @@ fn update_graph_system(
             }
         }
     }
-    info!("{:?}", graph.graph_map);
+    debug!("{:?}", graph.graph_map);
     // for transform in query.iter() {}
 }
 
@@ -220,8 +220,16 @@ fn _print_new_path_system(
 }
 
 #[derive(Default)]
-struct WaypointGraph {
+pub struct WaypointGraph {
     graph_map: UnGraphMap<Entity, f32>,
+    base_entity: Option<Entity>,
+}
+
+impl WaypointGraph {
+    pub fn get_base_entity(&self) -> Entity {
+        self.base_entity
+            .expect("base entity not initialized. startup system did not run!")
+    }
 }
 
 fn path_egui_ui_system(
@@ -283,15 +291,36 @@ fn path_egui_ui_system(
     }
 }
 
+fn startup_system(mut commands: Commands, mut graph: ResMut<WaypointGraph>) {
+    graph.base_entity = Some(commands.spawn().insert(Name::new("waypoints")).id());
+}
+
+fn grab_waypoints(
+    mut commands: Commands,
+    graph: Res<WaypointGraph>,
+    new_waypoints_query: Query<Entity, Added<Waypoint>>,
+) {
+    if new_waypoints_query.is_empty() {
+        return;
+    }
+    let mut x = commands.entity(graph.get_base_entity());
+
+    for entity in &new_waypoints_query {
+        x.add_child(entity);
+    }
+}
+
 pub struct PathPlugin;
 
 impl Plugin for PathPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<WaypointGraph>()
+        .add_startup_system(startup_system)
             .add_system(path_egui_ui_system)
             // .add_system(debug_draw_system)
             .add_system(update_graph_system)
             .add_system(find_path_system_par)
+            .add_system(grab_waypoints)
             // .add_system(print_new_path_system)
             ;
     }
