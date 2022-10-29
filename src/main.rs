@@ -183,7 +183,8 @@ fn spawn_player(commands: &mut Commands, asset_server: &AssetServer, translation
         .insert(TargetFlag)
         .insert(HealthPoints { health: 60 })
         .insert(ItemContactProbe::default())
-        .insert(Zappable);
+        .insert(Zappable)
+        .insert(Name::new("player"));
 }
 
 fn setup_camera(

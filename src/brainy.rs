@@ -62,12 +62,14 @@ pub fn spawn_brainy_ferris(
     // .insert(VelocityWalker {
     //     velocity: Vec3::ZERO,
     // })
+    let entity = entity_commands.id();
     entity_commands
         .insert(Zappable)
         .insert(CrabMoveWalker::default())
         .insert(TargetDistanceProbe { d: 0.0 })
         .insert(ItemContactProbe::default())
-        .insert(Ammo::default());
+        .insert(Ammo::default())
+        .insert(Name::new(format!("brainy#{}", entity.id())));
 
     if true {
         entity_commands
@@ -117,10 +119,12 @@ pub fn spawn_brainy_ferris_system(
     mut query: Query<(Entity, &mut HealthPoints), With<ThinkerBuilder>>,
     waypoints_query: Query<&Transform, With<Waypoint>>,
 ) {
-    state.next_increase -= time.delta_seconds();
-    if state.next_increase <= 0.0 {
-        state.next_increase = 15.0;
-        state.ferris_count += 1;
+    if false {
+        state.next_increase -= time.delta_seconds();
+        if state.next_increase <= 0.0 {
+            state.next_increase = 15.0;
+            state.ferris_count += 1;
+        }
     }
 
     egui::Window::new("ferris").show(egui_context.ctx_mut(), |ui| {
