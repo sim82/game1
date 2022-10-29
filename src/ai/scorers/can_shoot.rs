@@ -50,7 +50,7 @@ pub fn can_shoot_scorer_system(
             } else {
                 0.0
             };
-
+            // info!("can shoot: {s}");
             score.set(s);
         }
     }

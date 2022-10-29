@@ -9,7 +9,17 @@ use big_brain::prelude::*;
 use super::DebugAction;
 
 #[derive(Clone, Component, Debug)]
-pub struct RunAway;
+pub struct RunAway {
+    timeout: Timer,
+}
+
+impl Default for RunAway {
+    fn default() -> Self {
+        Self {
+            timeout: Timer::from_seconds(1.0, false),
+        }
+    }
+}
 //  {
 // pub until: f32,
 // }
@@ -18,11 +28,12 @@ pub struct RunAway;
 // labeled by ActionState.
 pub fn run_away_action_system(
     mut commands: Commands,
+    time: Res<Time>,
     mut walkers: Query<(&Transform, &TargetDistanceProbe, &mut CrabMoveWalker)>,
     target_query: Query<&Transform, With<TargetFlag>>,
     // We execute actions by querying for their associated Action Component
     // (Drink in this case). You'll always need both Actor and ActionState.
-    mut query: Query<(&Actor, &mut ActionState, &RunAway)>,
+    mut query: Query<(&Actor, &mut ActionState, &mut RunAway)>,
 ) {
     let target_pos = target_query
         .iter()
@@ -30,7 +41,7 @@ pub fn run_away_action_system(
         .map(|t| t.translation)
         .unwrap_or_default();
 
-    for (Actor(actor), mut state, _run_away) in query.iter_mut() {
+    for (Actor(actor), mut state, mut run_away) in query.iter_mut() {
         commands
             .entity(*actor)
             .insert(DebugAction::new("run away", state.clone()));
@@ -44,10 +55,15 @@ pub fn run_away_action_system(
                 ActionState::Executing => {
                     let tv = (transform.translation - target_pos).normalize();
                     walker.direction = CrabMoveDirection::find_nearest(tv);
+                    run_away.timeout.tick(time.delta());
+                    if run_away.timeout.finished() {
+                        info!("evade success");
+                        *state = ActionState::Cancelled;
+                    }
                 }
                 // All Actions should make sure to handle cancellations!
                 ActionState::Cancelled => {
-                    *state = ActionState::Failure;
+                    *state = ActionState::Success;
                 }
                 _ => {}
             }

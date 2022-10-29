@@ -7,8 +7,15 @@ use rand::{prelude::SliceRandom, Rng};
 use crate::{
     ai::{
         actions::{
-            dodge_pew::DodgePew, follow::Follow, goto_medikit::GotoMedikit,
-            jiggle_around::JiggleAround, run_away::RunAway, shoot::Shoot,
+            dodge_pew::DodgePew,
+            follow::Follow,
+            goto_medikit::GotoMedikit,
+            goto_pos::ActionGotoPos,
+            jiggle_around::JiggleAround,
+            pick_goto_pos::{ActionPickGotoPos, TargetPos},
+            run_away::RunAway,
+            shoot::Shoot,
+            wait::ActionWait,
         },
         inspect::AiInspectTarget,
         scorers::{
@@ -28,6 +35,17 @@ mod tune {
     pub const FEAR_DISTANCE: f32 = 50.0;
     pub const CURIOSITY_DISTANCE: f32 = 100.0;
     pub const FOLLOW_MIN_DISTANCE: f32 = 16.0;
+}
+
+fn new_brainy_thinker() -> ThinkerBuilder {
+    let idle_steps = Steps::build()
+        .step(ActionPickGotoPos::new(TargetPos::Random))
+        .step(ActionGotoPos)
+        .step(ActionWait::range(2.0..4.0));
+
+    Thinker::build()
+        .picker(Highest)
+        .when(FixedScore(0.5), idle_steps)
 }
 
 pub fn spawn_brainy_ferris(
@@ -73,22 +91,23 @@ pub fn spawn_brainy_ferris(
 
     if true {
         entity_commands
-            .insert(
-                Thinker::build()
-                    .picker(FirstToScore { threshold })
-                    .when(PewIncoming::build(), DodgePew::build())
-                    .when(CanShoot::default(), Shoot::default())
-                    .when(LowHealth::build(), GotoMedikit::default())
-                    .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
-                    .when(Crowdiness::default(), DodgePew::build())
-                    .when(
-                        Curiousity::build().within(tune::CURIOSITY_DISTANCE),
-                        Follow {
-                            until: tune::FOLLOW_MIN_DISTANCE,
-                        },
-                    )
-                    .otherwise(JiggleAround::default()),
-            )
+            // .insert(
+            //     Thinker::build()
+            //         .picker(FirstToScore { threshold })
+            //         .when(PewIncoming::build(), DodgePew::build())
+            //         .when(CanShoot::default(), Shoot::default())
+            //         .when(LowHealth::build(), GotoMedikit::default())
+            //         // .when(Fear::build().within(tune::FEAR_DISTANCE), RunAway {})
+            //         // .when(Crowdiness::default(), DodgePew::build())
+            //         // .when(
+            //         //     Curiousity::build().within(tune::CURIOSITY_DISTANCE),
+            //         //     Follow {
+            //         //         until: tune::FOLLOW_MIN_DISTANCE,
+            //         //     },
+            //         // )
+            //         .otherwise(JiggleAround::default()),
+            // )
+            .insert(new_brainy_thinker())
             .insert(HealthPoints { health: 50 });
     }
     if inspect_target {

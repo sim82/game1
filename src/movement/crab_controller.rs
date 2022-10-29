@@ -114,6 +114,7 @@ pub fn crab_follow_path_system(
     {
         if follow_path.next_step >= waypoints.len() {
             commands.entity(entity).remove::<CrabFollowPath>();
+            walker.direction = CrabMoveDirection::None;
             continue;
         }
         let min_dist = 6.0;

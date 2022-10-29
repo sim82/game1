@@ -1,7 +1,15 @@
 use bevy::prelude::*;
 use big_brain::BigBrainStage;
 
-use crate::ai::{inspect::AiInspectState, util::ammo_reload_system};
+use crate::ai::{
+    actions::{
+        goto_pos::action_goto_pos_system,
+        pick_goto_pos::{self, action_pick_goto_pos_system},
+        wait::action_wait_system,
+    },
+    inspect::AiInspectState,
+    util::ammo_reload_system,
+};
 
 pub mod actions;
 pub mod diagnostics;
@@ -47,6 +55,9 @@ impl Plugin for AiPlugin {
             .add_system_to_stage(BigBrainStage::Actions, dodge_pew_action_system)
             .add_system_to_stage(BigBrainStage::Actions, goto_medikit_action_system)
             .add_system_to_stage(BigBrainStage::Actions, shoot_action_system)
+            .add_system_to_stage(BigBrainStage::Actions, action_pick_goto_pos_system)
+            .add_system_to_stage(BigBrainStage::Actions, action_goto_pos_system)
+            .add_system_to_stage(BigBrainStage::Actions, action_wait_system)
             // scorers
             .add_system_to_stage(BigBrainStage::Scorers, fear_scorer_system)
             .add_system_to_stage(BigBrainStage::Scorers, curiousity_scorer_system)

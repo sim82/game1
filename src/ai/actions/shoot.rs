@@ -14,6 +14,7 @@ use super::DebugAction;
 pub struct Shoot {
     shoot_right: bool,
     reload: f32,
+    shots_fired: i32,
 }
 
 pub fn shoot_action_system(
@@ -52,6 +53,12 @@ pub fn shoot_action_system(
                 *state = ActionState::Executing;
             }
             ActionState::Executing => {
+                const NUM_SHOTS_PER_ATTACK: i32 = 3;
+                if shoot.shots_fired >= NUM_SHOTS_PER_ATTACK {
+                    *state = ActionState::Success;
+                    continue;
+                }
+
                 shoot.reload -= time.delta_seconds();
                 if shoot.reload <= 0.0 {
                     let (Transform { translation, .. }, _, mut ammo) =
@@ -78,6 +85,7 @@ pub fn shoot_action_system(
                         .insert(Despawn::TimeToLive(10.0));
                     shoot.reload = 0.2;
                     ammo.ammo -= 1.0;
+                    shoot.shots_fired += 1;
                 }
             }
             ActionState::Cancelled => {
