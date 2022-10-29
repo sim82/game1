@@ -13,13 +13,14 @@ pub mod pick_goto_pos {
     use big_brain::prelude::*;
     use rand::prelude::*;
 
-    use crate::{movement::control::MovementGoToPoint, path::Waypoint};
+    use crate::{item::medikit::Medikit, movement::control::MovementGoToPoint, path::Waypoint};
 
     use super::DebugAction;
 
     #[derive(Debug, Clone)]
     pub enum TargetPos {
         Random,
+        Medikit,
     }
 
     #[derive(Component, Debug, Clone)]
@@ -38,9 +39,14 @@ pub mod pick_goto_pos {
         actor_query: Query<&Transform>,
         // go_to_point_query: Query<(), With<MovementGoToPoint>>,
         waypoint_query: Query<&Transform, With<Waypoint>>,
+        medikit_query: Query<&Transform, With<Medikit>>,
     ) {
         for (Actor(actor), mut state, mut pick_goto_pos) in query.iter_mut() {
-            info!("pick: {:?}", state);
+            debug!("pick: {:?} {:?}", state, pick_goto_pos.target);
+            let Transform {
+                translation: actor_pos,
+                ..
+            } = actor_query.get(*actor).unwrap();
 
             match *state {
                 // let mut nearest_dist
@@ -56,12 +62,31 @@ pub mod pick_goto_pos {
                         TargetPos::Random => {
                             let cand_pos = waypoint_query.iter().collect::<Vec<_>>(); // FIXME: this is horrible!
                             let mut rng = thread_rng();
-                            cand_pos[rng.gen_range(0..cand_pos.len())]
+                            cand_pos[rng.gen_range(0..cand_pos.len())].translation
+                        }
+                        TargetPos::Medikit => {
+                            let best_pos = medikit_query
+                                .iter()
+                                .map(
+                                    |Transform {
+                                         translation: medikit_pos,
+                                         ..
+                                     }| *medikit_pos,
+                                )
+                                .min_by_key(|medikit_pos| {
+                                    (*medikit_pos - *actor_pos).length() as i32
+                                });
+
+                            if let Some(best_pos) = best_pos {
+                                best_pos
+                            } else {
+                                // no medikit found -> go directly to failure
+                                *state = ActionState::Failure;
+                                continue;
+                            }
                         }
                     };
-                    commands
-                        .entity(*actor)
-                        .insert(MovementGoToPoint(best_pos.translation));
+                    commands.entity(*actor).insert(MovementGoToPoint(best_pos));
 
                     *state = ActionState::Success;
                 }
@@ -81,25 +106,44 @@ pub mod goto_pos {
 
     use crate::{
         movement::{
-            control::MovementGoToPoint, crab_controller::CrabFollowPath,
-            crab_move::CrabMoveDirection,
+            control::MovementGoToPoint,
+            crab_controller::CrabFollowPath,
+            crab_move::{CrabMoveDirection, CrabMoveWalker},
         },
-        path::Waypoint,
+        path::{PathQuery, Waypoint, WaypointPath},
     };
 
     use super::DebugAction;
 
     #[derive(Component, Debug, Clone)]
-    pub struct ActionGotoPos;
+    pub struct ActionGotoPos {
+        next_step_timeout: Timer,
+        next_step: usize,
+    }
 
+    impl Default for ActionGotoPos {
+        fn default() -> Self {
+            Self {
+                next_step: 0,
+                next_step_timeout: Timer::from_seconds(2.0, false),
+            }
+        }
+    }
     pub fn action_goto_pos_system(
         mut commands: Commands,
+        time: Res<Time>,
         mut query: Query<(&Actor, &mut ActionState, &mut ActionGotoPos)>,
         actor_query: Query<&Transform>,
-        go_to_point_query: Query<(), With<MovementGoToPoint>>,
+        go_to_point_query: Query<&MovementGoToPoint>,
+        mut path_query: Query<(&WaypointPath, &mut CrabMoveWalker)>,
+        waypoint_query: Query<&Transform, With<Waypoint>>,
     ) {
         for (Actor(actor), mut state, mut goto_pos) in query.iter_mut() {
-            info!("goto: {:?}", state);
+            // info!("goto: {:?}", state);
+            let Transform {
+                translation: actor_pos,
+                ..
+            } = actor_query.get(*actor).unwrap();
 
             match *state {
                 // let mut nearest_dist
@@ -107,18 +151,65 @@ pub mod goto_pos {
                     commands
                         .entity(*actor)
                         .insert(DebugAction::new("goto pos", state.clone()));
+
+                    let goto_pos = go_to_point_query.get(*actor).unwrap();
+
+                    commands.entity(*actor).insert(PathQuery {
+                        start: *actor_pos,
+                        end: goto_pos.0,
+                    });
                     *state = ActionState::Executing
                 }
                 ActionState::Executing => {
-                    if go_to_point_query.get(*actor).is_err() {
-                        *state = ActionState::Success;
+                    if let Ok((WaypointPath { waypoints }, mut walker)) = path_query.get_mut(*actor)
+                    {
+                        if goto_pos.next_step >= waypoints.len() {
+                            walker.direction = CrabMoveDirection::None;
+                            commands.entity(*actor).remove::<MovementGoToPoint>();
+                            commands.entity(*actor).remove::<WaypointPath>();
+                            *state = ActionState::Success;
+                            continue;
+                        }
+                        let min_dist = 6.0;
+                        if let Ok(Transform {
+                            translation: waypoint_translation,
+                            ..
+                        }) = waypoint_query.get(waypoints[goto_pos.next_step])
+                        {
+                            let d = *waypoint_translation - *actor_pos;
+                            let tv = d.normalize();
+                            walker.direction = CrabMoveDirection::find_nearest(tv);
+                            debug!(
+                                "follow path progress: {} {} {:?}",
+                                goto_pos.next_step,
+                                d.length(),
+                                waypoint_translation
+                            );
+
+                            if d.length() < min_dist {
+                                // info!("follow path next step: {}", follow_path.next_step);
+                                goto_pos.next_step += 1;
+                                goto_pos.next_step_timeout.reset();
+                            }
+
+                            goto_pos.next_step_timeout.tick(time.delta());
+                            if goto_pos.next_step_timeout.finished() {
+                                warn!("timeout reaching next step -> failure");
+                                *state = ActionState::Failure;
+                                continue;
+                            }
+                        }
                     }
+
+                    // if go_to_point_query.get(*actor).is_err() {
+                    //     *state = ActionState::Success;
+                    // }
                 }
                 ActionState::Cancelled => {
                     commands
                         .entity(*actor)
                         .remove::<MovementGoToPoint>()
-                        .remove::<CrabFollowPath>();
+                        .remove::<WaypointPath>();
                     *state = ActionState::Failure;
                 }
                 _ => {}
@@ -163,7 +254,7 @@ pub mod wait {
         go_to_point_query: Query<(), With<MovementGoToPoint>>,
     ) {
         for (Actor(actor), mut state, mut wait) in query.iter_mut() {
-            info!("wait: {:?}", state);
+            // info!("wait: {:?}", state);
 
             match *state {
                 ActionState::Requested => {

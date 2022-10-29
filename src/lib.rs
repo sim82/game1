@@ -114,7 +114,7 @@ pub fn despawn_reaper_system(
             }
         };
         if despawn {
-            info!("despawn {:?}", entity);
+            debug!("despawn {:?}", entity);
             commands.entity(entity).despawn_recursive();
         }
     }

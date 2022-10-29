@@ -75,6 +75,7 @@ impl Plugin for ItemPlugin {
         app.add_system(medikit::pick_medikit_system)
             .add_system(medikit::spawn_medikits_system)
             .add_system(item_contact_system)
-            .add_system_to_stage(CoreStage::Last, grab_items_system);
+            // .add_system_to_stage(CoreStage::Last, grab_items_system)
+            ;
     }
 }

@@ -19,8 +19,12 @@ use crate::{
         },
         inspect::AiInspectTarget,
         scorers::{
-            can_shoot::CanShoot, crowdiness::Crowdiness, curiosity::Curiousity, fear::Fear,
-            health_low::LowHealth, pew_incoming::PewIncoming,
+            can_shoot::CanShoot,
+            crowdiness::Crowdiness,
+            curiosity::Curiousity,
+            fear::Fear,
+            health_low::{LowHealth, LowHealthBuilder},
+            pew_incoming::PewIncoming,
         },
         util::{Ammo, TargetDistanceProbe},
         HealthPoints,
@@ -40,11 +44,17 @@ mod tune {
 fn new_brainy_thinker() -> ThinkerBuilder {
     let idle_steps = Steps::build()
         .step(ActionPickGotoPos::new(TargetPos::Random))
-        .step(ActionGotoPos)
+        .step(ActionGotoPos::default())
         .step(ActionWait::range(2.0..4.0));
+
+    let find_medikit_steps = Steps::build()
+        .step(ActionPickGotoPos::new(TargetPos::Medikit))
+        .step(ActionGotoPos::default());
 
     Thinker::build()
         .picker(Highest)
+        .when(LowHealth::build(), find_medikit_steps)
+        .when(PewIncoming::build(), DodgePew::build())
         .when(FixedScore(0.5), idle_steps)
 }
 
@@ -147,12 +157,12 @@ pub fn spawn_brainy_ferris_system(
     }
 
     egui::Window::new("ferris").show(egui_context.ctx_mut(), |ui| {
-        ui.add(egui::Slider::new(&mut state.ferris_count, 1..=100));
+        ui.add(egui::Slider::new(&mut state.ferris_count, 1..=50000));
     });
 
     let count = query.iter().count();
     let mut first = count == 0;
-
+    info!("count: {} {}", count, state.ferris_count);
     #[allow(clippy::comparison_chain)]
     match count.cmp(&state.ferris_count) {
         std::cmp::Ordering::Less => {
@@ -162,9 +172,11 @@ pub fn spawn_brainy_ferris_system(
                 .map(|transform| transform.translation)
                 .collect::<Vec<_>>();
 
-            if waypoint_pos.len() < num_create {
-                return;
-            }
+            // if waypoint_pos.len() < num_create {
+            //     return;
+            // }
+
+            let num_create = num_create.min(waypoint_pos.len());
 
             let mut rng = rand::thread_rng();
 
@@ -176,7 +188,7 @@ pub fn spawn_brainy_ferris_system(
         }
 
         std::cmp::Ordering::Greater => {
-            let num_despawn = 10.min(count - state.ferris_count);
+            let num_despawn = 1000.min(count - state.ferris_count);
 
             for (_entity, mut health_points) in query.iter_mut().take(num_despawn) {
                 // commands.entity(entity).insert(Despawn::ThisFrame);

@@ -80,6 +80,7 @@ pub struct PathQuery {
 }
 
 #[derive(Component, Debug, Reflect)]
+#[component(storage = "SparseSet")]
 pub struct WaypointPath {
     pub waypoints: Vec<Entity>,
 }
@@ -124,7 +125,7 @@ fn _find_path_system(
         commands.entity(path_query_entity).despawn();
     }
     if !query.is_empty() {
-        info!("path find: {:?}", start.elapsed());
+        debug!("path find: {:?}", start.elapsed());
     }
 }
 
@@ -178,7 +179,7 @@ fn find_path_system_par(
         }
     });
     if !query.is_empty() {
-        info!("path find (par): {:?}", start.elapsed());
+        debug!("path find (par): {:?}", start.elapsed());
     }
     // gather & distribute results to target entities (munching up the mutex along the way... sidenote: I love rust)
     if let Ok(out) = out.into_inner() {
@@ -192,7 +193,7 @@ fn find_path_system_par(
     }
 
     if !query.is_empty() {
-        info!("path find: {:?}", start.elapsed());
+        debug!("path find: {:?}", start.elapsed());
     }
 }
 
